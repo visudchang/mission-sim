@@ -2,23 +2,13 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from sim.common_imports import *
-
-orbit = Orbit.from_classical(
-    cfg["attractor"],
-    cfg["a"],
-    cfg["ecc"],
-    cfg["inc"],
-    cfg["raan"],
-    cfg["argp"],
-    cfg["nu"],
-    epoch = cfg["epoch"]
-)
+from sim.orbits import orb0
 
 time_step = 60 * u.s
 duration = 60 * 60 * u.s
 times = [time_step * i for i in range(int(duration / time_step))]
 
-def live_telemetry():
+def live_telemetry(orbit):
     for t in times:
         propogated_orbit = orbit.propagate(t)
         r = propogated_orbit.r
@@ -26,18 +16,21 @@ def live_telemetry():
         print(f"[T + {t.to(u.min)}] Position: {r}, Velocity: {v}")
         time.sleep(1)
 
-coords = [orbit.propagate(t).r.to(u.km).value for t in times]
-xs, ys, zs = zip(*coords)
+def show_propagation(orbit):
+    coords = [orbit.propagate(t).r.to(u.km).value for t in times]
+    xs, ys, zs = zip(*coords)
 
-fig = go.Figure(data = go.Scatter3d(
-    x = xs, y = ys, z = zs,
-    mode = 'lines+markers',
-    marker = dict(size = 4),
-    line = dict(width = 2)
-))
+    fig = go.Figure(data = go.Scatter3d(
+        x = xs, y = ys, z = zs,
+        mode = 'lines+markers',
+        marker = dict(size = 4),
+        line = dict(width = 2)
+    ))
 
-fig.update_layout(
-    title = "Orbit Propagation",
-)
+    fig.update_layout(
+        title = "Orbit Propagation",
+    )
 
-fig.show()
+    fig.show()
+
+show_propagation(orb0)
