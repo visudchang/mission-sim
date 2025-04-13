@@ -1,16 +1,7 @@
-from astropy import units as u
-from poliastro.bodies import Earth
-from poliastro.twobody import Orbit
-from poliastro.plotting.static import StaticOrbitPlotter
-import matplotlib.pyplot as plt
-from poliastro.plotting import OrbitPlotter3D
-from plotly.offline import plot
-import plotly.graph_objects as go
 import sys
 import os
-import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from sim.config import mission_config as cfg
+from sim.common_imports import *
 
 orbit = Orbit.from_classical(
     cfg["attractor"],
@@ -24,7 +15,7 @@ orbit = Orbit.from_classical(
 )
 
 time_step = 60 * u.s
-duration = 30 * 60 * u.s
+duration = 60 * 60 * u.s
 times = [time_step * i for i in range(int(duration / time_step))]
 
 def live_telemetry():
