@@ -10,6 +10,7 @@ mission_config = {
     "ecc": 0 * u.one,
     "inc": 53 * u.deg,
     "raan": 0 * u.deg,
+    "argp": 0 * u.deg,
     "nu": 0 * u.deg,
     "dry_mass": 4 * u.kg,
     "prop_mass": 1 * u.kg,
