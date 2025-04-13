@@ -1,7 +1,5 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from sim.common_imports import *
+from astropy import units as u
+from poliastro.bodies import Earth
 from astropy.time import Time
 
 # CubeSat mission parameters

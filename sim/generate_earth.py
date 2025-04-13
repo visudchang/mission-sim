@@ -1,7 +1,7 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from sim.common_imports import *
+import numpy as np
+from astropy import units as u
+from poliastro.bodies import Earth
+import plotly.graph_objects as go
 
 earth_radius = Earth.R.to(u.km).value
 u_vals = np.linspace(0, 2 * np.pi, 50)
