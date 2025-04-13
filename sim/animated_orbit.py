@@ -65,5 +65,3 @@ def animate_orbit(orbit):
     )
 
     fig.show()
-
-animate_orbit(orb0)
