@@ -4,13 +4,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from sim.common_imports import *
 from sim.orbits import orb0, orb1
 
-dv = [5, 0, 0] << (u.m / u.s)
-imp = Maneuver.impulse(dv)
-
-def hohmann_plot(orb_i):
-    hoh = Maneuver.hohmann(orb_i, 36000 << u.km)
-    print(hoh.get_total_cost())
-    print(hoh.get_total_time())
+def hohmann_plot(orb_i, new_radius):
+    hoh = Maneuver.hohmann(orb_i, new_radius)
+    print(f"Total delta v: {hoh.get_total_cost()}")
+    print(f"Total transfer time: {hoh.get_total_time()}")
 
     fig, ax = plt.subplots()
     op = StaticOrbitPlotter(ax)
@@ -103,6 +100,7 @@ def animate_hohmann_transfer(orb_i, new_radius):
         frames = frames
     )
 
-    fig.show()
+    print(f"Total delta v: {hoh.get_total_cost()}")
+    print(f"Total transfer time: {hoh.get_total_time()}")
 
-animate_hohmann_transfer(orb0, Earth.R + 36000 * u.km)
+    fig.show()
