@@ -27,30 +27,39 @@ def animate_hohmann_transfer(orb_i, new_radius):
     orb_transfer = orbits[0]
     orb_f = orbits[1]
 
+    orb_i_times = [i * orb_i.period / 300 for i in range(301)]
+    orb_i_coords = [orb_i.propagate(t).r.to(u.km).value for t in orb_i_times]
+    xi, yi, zi = zip(*orb_i_coords)
+
     transfer_time = hoh.get_total_time()
-    minutes = 180
-    times = [i * transfer_time / minutes for i in range(minutes)]
-    orb_f_times = [i * 60 * u.s for i in range(2000)]
-    orb_transfer_coords = [orb_transfer.propagate(t).r.to(u.km).value for t in times]
-    xs, ys, zs = zip(*orb_transfer_coords)
+    transfer_times = [i * transfer_time / 180 for i in range(181)]
+    transfer_coords = [orb_transfer.propagate(t).r.to(u.km).value for t in transfer_times]
+    xt, yt, zt = zip(*transfer_coords)
+
+    orb_f_times = [i * orb_f.period / 300 for i in range(301)]
     orb_f_coords = [orb_f.propagate(t).r.to(u.km).value for t in orb_f_times]
-    xt, yt, zt = zip(*orb_f_coords)
-    xs = list(xs)
-    ys = list(ys)
-    zs = list(zs)
-    xs.extend(xt)
-    ys.extend(yt)
-    zs.extend(zt)
+    xf, yf, zf = zip(*orb_f_coords)
+    
+    xs = list(xi) + list(xt) + list(xf)
+    ys = list(yi) + list(yt) + list(yf)
+    zs = list(zi) + list(zt) + list(zf)
+
+    burn1_index = len(xi) - 1
+    burn2_index = burn1_index + len(xt) - 1
 
     # Create frames (each with Earth + satellite position + trail)
-    frames = [
-        go.Frame(
+    frames = []
+    for i in range(len(xs)):
+        marker = dict(size = 6, color = 'red')
+        if i in [burn1_index, burn1_index + 1, burn1_index + 2, burn2_index, burn2_index + 1, burn2_index + 2]:
+            marker = dict(size = 12, color = 'orange')
+        frames.append(go.Frame(
             data = [
                 earth_surface,
                 go.Scatter3d(
                     x = [xs[i]], y = [ys[i]], z = [zs[i]],
                     mode = 'markers',
-                    marker = dict(size=6, color='red'),
+                    marker = marker,
                     name = 'Satellite'
                 ),
                 go.Scatter3d(
@@ -61,9 +70,7 @@ def animate_hohmann_transfer(orb_i, new_radius):
                 )
             ],
             name = f'frame{i}'
-        )
-        for i in range(len(xs))
-    ]
+        ))
 
     # Base figure
     fig = go.Figure(
