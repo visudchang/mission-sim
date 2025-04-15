@@ -15,7 +15,8 @@ import plotly.graph_objects as go
 import time
 from sim.config import mission_config as cfg
 from astropy.time import Time
-from sim.generate_earth import earth_surface
+from sim.visualization.generate_earth import earth_surface
 from poliastro.maneuver import Maneuver
 from scipy.spatial.transform import Rotation as R
+from dataclasses import dataclass
 

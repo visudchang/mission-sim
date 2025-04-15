@@ -2,53 +2,32 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from sim.common_imports import *
-from sim.orbits import orb0, orb1
+from sim.visualization.animated_orbit import animate_orbit
+from sim.maneuvers.hohmann import animate_hohmann_transfer, hohmann_plot
+from sim.maneuvers.inclination_change import animate_inclination_change_dv, animate_inclination_change_orb_f, compute_inclination_change_dv
+from sim.orbits import orb0, orb2
 
-def hohmann_plot(orb_i, new_radius):
-    hoh = Maneuver.hohmann(orb_i, new_radius)
-    print(f"Total delta v: {hoh.get_total_cost()}")
-    print(f"Total transfer time: {hoh.get_total_time()}")
+def generate_trajectory_segments(plan, steps_per_orbit = 300):
+    coords = []
+    burn_indices = []
 
-    fig, ax = plt.subplots()
-    op = StaticOrbitPlotter(ax)
-    orb_a, orb_f = orb_i.apply_maneuver(hoh, intermediate = True)
-    op.plot(orb_i, label = "Initial orbit")
-    op.plot(orb_a, label = "Transfer orbit")
-    op.plot(orb_f, label = "Final orbit")
+    for step in plan:
+        times = [i * step.duration / steps_per_orbit for i in range(steps_per_orbit + 1)]
+        segment = [step.orbit.propagate(t).r.to(u.km).value for t in times]
 
-    plt.show()
+        if step.burn:
+            burn_indices.append(len(coords) - 1)
 
-def animate_hohmann_transfer(orb_i, new_radius):
-    hoh = Maneuver.hohmann(orb_i, new_radius)
-    orbits = orb_i.apply_maneuver(hoh, intermediate = True)
-    orb_transfer = orbits[0]
-    orb_f = orbits[1]
-
-    orb_i_times = [i * orb_i.period / 300 for i in range(301)]
-    orb_i_coords = [orb_i.propagate(t).r.to(u.km).value for t in orb_i_times]
-    xi, yi, zi = zip(*orb_i_coords)
-
-    transfer_time = hoh.get_total_time()
-    transfer_times = [i * transfer_time / 180 for i in range(181)]
-    transfer_coords = [orb_transfer.propagate(t).r.to(u.km).value for t in transfer_times]
-    xt, yt, zt = zip(*transfer_coords)
-
-    orb_f_times = [i * orb_f.period / 300 for i in range(301)]
-    orb_f_coords = [orb_f.propagate(t).r.to(u.km).value for t in orb_f_times]
-    xf, yf, zf = zip(*orb_f_coords)
+        coords.extend(segment)
     
-    xs = list(xi) + list(xt) + list(xf)
-    ys = list(yi) + list(yt) + list(yf)
-    zs = list(zi) + list(zt) + list(zf)
+    return coords, burn_indices
 
-    burn1_index = len(xi) - 1
-    burn2_index = burn1_index + len(xt) - 1
-
-    # Create frames (each with Earth + satellite position + trail)
+def animate_burn_plan(coords, burn_indices):
+    xs, ys, zs = zip(*coords)
     frames = []
     for i in range(len(xs)):
         marker = dict(size = 6, color = 'red')
-        if i in [burn1_index, burn1_index + 1, burn1_index + 2, burn2_index, burn2_index + 1, burn2_index + 2]:
+        if i in burn_indices or i in [b + 1 for b in burn_indices] or i in [b + 2 for b in burn_indices]:
             marker = dict(size = 12, color = 'orange')
         frames.append(go.Frame(
             data = [
@@ -79,7 +58,7 @@ def animate_hohmann_transfer(orb_i, new_radius):
                         line = dict(width = 2, color = 'white'))
         ],
         layout=go.Layout(
-            title = "Animated Hohmann Transfer Orbit",
+            title = "Mission Burn Plan Animation",
             scene = dict(
                 xaxis_title = 'X (km)',
                 yaxis_title = 'Y (km)',
@@ -99,8 +78,5 @@ def animate_hohmann_transfer(orb_i, new_radius):
         ),
         frames = frames
     )
-
-    print(f"Total delta v: {hoh.get_total_cost()}")
-    print(f"Total transfer time: {hoh.get_total_time()}")
 
     fig.show()

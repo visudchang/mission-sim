@@ -29,3 +29,12 @@ orb2 = Orbit.from_classical(cfg["attractor"],
                             cfg["argp"],
                             cfg["nu"],
                             epoch = cfg["epoch"])
+
+orb3 = Orbit.from_classical(cfg["attractor"],
+                            cfg["a"] + 18000 * u.km,
+                            cfg["ecc"],
+                            53.0 * u.deg,
+                            cfg["raan"],
+                            cfg["argp"],
+                            cfg["nu"],
+                            epoch = cfg["epoch"])
