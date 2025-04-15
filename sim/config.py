@@ -8,7 +8,7 @@ mission_config = {
     "attractor": Earth,
     "a": Earth.R + 500 * u.km,
     "ecc": 0 * u.one,
-    "inc": 15 * u.deg,
+    "inc": 0 * u.deg,
     "raan": 0 * u.deg,
     "argp": 0 * u.deg,
     "nu": 0 * u.deg,
