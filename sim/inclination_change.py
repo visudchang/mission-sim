@@ -4,6 +4,24 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from sim.common_imports import *
 from sim.orbits import orb0, orb2
 
+def compute_inclination_change_dv(orbit_initial, orbit_final):
+    delta_i = abs(orbit_initial.inc - orbit_final.inc).to(u.rad).value
+    r_vec = orbit_initial.r.to(u.km).value
+    v_vec = orbit_initial.v.to(u.km / u.s).value
+
+    # Node line = cross product of angular momentum vectors (axis of rotation)
+    h1 = np.cross(r_vec, v_vec)
+    h2 = np.cross(orbit_final.r.to(u.km).value, orbit_final.v.to(u.km / u.s).value)
+    axis = np.cross(h1, h2)
+    axis = axis / np.linalg.norm(axis)
+
+    # Rotate velocity vector by delta inclination
+    rot = R.from_rotvec(delta_i * axis)
+    v_rotated = rot.apply(v_vec)
+
+    dv_vec = v_rotated - v_vec
+    return dv_vec * (u.km / u.s)
+
 def animate_inclination_change_orb_f(orb_i, orb_f):
     di = abs(orb_i.inc.to(u.rad).value - orb_f.inc.to(u.rad).value)
     dv = 2 * orb_i.v.to(u.km / u.s).value * np.sin(di / 2)
@@ -78,7 +96,7 @@ def animate_inclination_change_orb_f(orb_i, orb_f):
         frames = frames
     )
 
-    print(f"Total delta v: {dv}")
+    print(f"Total delta v: {np.linalg.norm(dv) * u.km / u.s}")
 
     fig.show()
 
@@ -87,7 +105,6 @@ def animate_inclination_change_dv(orb_i, dv):
     orb_i_coords = [orb_i.propagate(t).r.to(u.km).value for t in orb_i_times]
     xi, yi, zi = zip(*orb_i_coords)
 
-    dv = dv * (u.km / u.s)
     imp = Maneuver.impulse(dv)
     orb_f = orb_i.apply_maneuver(imp)
 
@@ -158,9 +175,9 @@ def animate_inclination_change_dv(orb_i, dv):
     )
 
     print(f"Total delta v: {imp.get_total_cost()}")
-    print(f"Total transfer time: {imp.get_total_time()}")
 
     fig.show()
 
-animate_inclination_change_dv(orb0, [0, 6.79345844, 0])
+print(compute_inclination_change_dv(orb0, orb2))
+animate_inclination_change_dv(orb0, compute_inclination_change_dv(orb0, orb2))
 animate_inclination_change_orb_f(orb0, orb2)
