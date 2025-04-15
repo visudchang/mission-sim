@@ -32,3 +32,19 @@ def show_propagation(orbit):
     )
 
     fig.show()
+
+def show_flight_plan_propagation(coords):
+    xs, ys, zs = zip(*coords)
+
+    fig = go.Figure(data = go.Scatter3d(
+        x = xs, y = ys, z = zs,
+        mode = 'lines+markers',
+        marker = dict(size = 4),
+        line = dict(width = 2)
+    ))
+
+    fig.update_layout(
+        title = "Flight Plan Propagation",
+    )
+
+    fig.show()
