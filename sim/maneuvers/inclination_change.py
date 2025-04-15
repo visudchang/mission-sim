@@ -4,14 +4,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from sim.common_imports import *
 from sim.orbits import orb0, orb2
 
-def compute_inclination_change_dv(orbit_initial, orbit_final):
-    delta_i = abs(orbit_initial.inc - orbit_final.inc).to(u.rad).value
-    r_vec = orbit_initial.r.to(u.km).value
-    v_vec = orbit_initial.v.to(u.km / u.s).value
+def compute_inclination_change_dv(orbit_i, orbit_f):
+    delta_i = abs(orbit_i.inc - orbit_f.inc).to(u.rad).value
+    r_vec = orbit_i.r.to(u.km).value
+    v_vec = orbit_i.v.to(u.km / u.s).value
 
     # Node line = cross product of angular momentum vectors (axis of rotation)
     h1 = np.cross(r_vec, v_vec)
-    h2 = np.cross(orbit_final.r.to(u.km).value, orbit_final.v.to(u.km / u.s).value)
+    h2 = np.cross(orbit_f.r.to(u.km).value, orbit_f.v.to(u.km / u.s).value)
     axis = np.cross(h1, h2)
     axis = axis / np.linalg.norm(axis)
 
@@ -177,7 +177,3 @@ def animate_inclination_change_dv(orb_i, dv):
     print(f"Total delta v: {imp.get_total_cost()}")
 
     fig.show()
-
-print(compute_inclination_change_dv(orb0, orb2))
-animate_inclination_change_dv(orb0, compute_inclination_change_dv(orb0, orb2))
-animate_inclination_change_orb_f(orb0, orb2)
