@@ -1,3 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from sim.common_imports import *
+
 def EarthOrbit3D():
     # Create the orbit
     orbit = Orbit.circular(Earth, alt=500 * u.km)
