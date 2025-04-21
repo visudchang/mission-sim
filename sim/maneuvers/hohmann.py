@@ -4,6 +4,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 from sim.common_imports import *
 from sim.orbits import orb0, orb1
 
+def hohmann_transfer_dv(orb_i, new_radius):
+    hoh = Maneuver.hohmann(orb_i, new_radius)
+    return hoh.get_total_cost()
+
 def hohmann_plot(orb_i, new_radius):
     hoh = Maneuver.hohmann(orb_i, new_radius)
     print(f"Total delta v: {hoh.get_total_cost()}")

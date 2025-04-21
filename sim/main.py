@@ -22,6 +22,6 @@ orbit = orb0
 
 plan = calculate_burn_plan(orb0, orb3)
 coords, burn = generate_trajectory_segments(plan)
-# animate_burn_plan(coords, burn)
+animate_burn_plan(coords, burn)
 
-show_flight_plan_propagation(coords)
+# show_flight_plan_propagation(coords)
