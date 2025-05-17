@@ -61,5 +61,33 @@ def plot_burn(thrust, isp, duration, m0, dry_mass, v0):
     plt.tight_layout()
     plt.show()
 
-plot_burn(5000, 300, 2000, 500, 100, 0.0)
+# plot_burn(5000, 300, 2000, 500, 100, 0.0)
 
+def perform_burn(orbit, thrust, isp, duration, m0):
+    dv, mf = simple_burn(thrust, isp, duration, m0)
+    burn = Maneuver.impulse([0, dv, 0]  * u.m / u.s)
+    new_orbit = orbit.apply_maneuver(burn)
+    return new_orbit, mf
+
+# To test perform_burn
+# Initial orbit
+initial_orbit = Orbit.circular(Earth, alt=500 * u.km)
+m0 = 500  # kg
+
+# Create plotter
+fig, ax = plt.subplots(figsize=(8, 8))
+plotter = StaticOrbitPlotter(ax)
+plotter.plot(initial_orbit, label="Initial")
+
+# First burn
+orbit1, m1 = perform_burn(initial_orbit, thrust=5000, isp=300, duration=60, m0=m0)
+plotter.plot(orbit1, label="After Burn 1")
+
+# Second burn
+orbit2, m2 = perform_burn(orbit1, thrust=4000, isp=310, duration=40, m0=m1)
+plotter.plot(orbit2, label="After Burn 2")
+
+# Finalize plot
+plt.legend()
+plt.title("Chained Burns: Orbit Evolution")
+plt.show()
