@@ -28,7 +28,7 @@ with open("telemetry_log.csv", mode = "a", newline = "") as csvfile:
                     decoded = data.decode()
                     telemetry = json.loads(decoded)
                     timestamp = datetime.now().isoformat()
-                    telemetry["Timestamp"] = timestamp
+                    telemetry["timestamp"] = timestamp
                     writer.writerow(telemetry)
                     csvfile.flush()
                     print(f"[Telemetry Received] {telemetry}")
