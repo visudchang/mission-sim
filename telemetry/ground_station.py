@@ -6,6 +6,8 @@ from datetime import datetime
 HOST = "127.0.0.1"
 PORT = 65432
 
+latest_telemetry = None
+
 with open("telemetry/telemetry_log.csv", mode = "a", newline = "") as csvfile:
     fieldnames = ["timestamp", "BAT", "TEMP", "ALT"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -25,12 +27,21 @@ with open("telemetry/telemetry_log.csv", mode = "a", newline = "") as csvfile:
                 if not data:
                     break
                 try:
-                    decoded = data.decode()
-                    telemetry = json.loads(decoded)
-                    timestamp = datetime.now().isoformat()
-                    telemetry["timestamp"] = timestamp
-                    writer.writerow(telemetry)
-                    csvfile.flush()
-                    print(f"[Telemetry Received] {telemetry}")
+                    decoded = data.decode().strip()
+                    if decoded == "GET_STATUS":
+                        if latest_telemetry:
+                            response = json.dumps(latest_telemetry).encode()
+                            conn.sendall(response)
+                            print("[Ground Station] Sent latest telemetry to requester")
+                        else:
+                            conn.sendall(b"No data yet.")
+                            print("[Ground Station] No telemetry available yet")
+                    else:
+                        telemetry = json.loads(decoded)
+                        timestamp = datetime.now().isoformat()
+                        telemetry["timestamp"] = timestamp
+                        writer.writerow(telemetry)
+                        csvfile.flush()
+                        print(f"[Telemetry Received] {telemetry}")
                 except Exception as e:
                     print(f"[Error] {e}")
