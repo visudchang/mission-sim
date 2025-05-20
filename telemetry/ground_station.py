@@ -16,10 +16,10 @@ with open("telemetry_log.csv", mode = "a", newline = "") as csvfile:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()
-        print(f"[Ground Station] listening on {HOST}:{PORT}")
+        print(f"[Ground Station] Listening on {HOST}:{PORT}")
         conn, addr = s.accept()
         with conn:
-            print(f"[Ground Station] connected by {addr}")
+            print(f"[Ground Station] Connected by {addr}")
             while True:
                 data = conn.recv(1024)
                 if not data:
@@ -28,7 +28,7 @@ with open("telemetry_log.csv", mode = "a", newline = "") as csvfile:
                     decoded = data.decode()
                     telemetry = json.loads(decoded)
                     timestamp = datetime.now().isoformat()
-                    telemetry["timestamp"] = timestamp
+                    telemetry["Timestamp"] = timestamp
                     writer.writerow(telemetry)
                     csvfile.flush()
                     print(f"[Telemetry Received] {telemetry}")
