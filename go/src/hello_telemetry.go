@@ -20,7 +20,7 @@ func main() {
 		fmt.Println("Error sending:", err)
 		os.Exit(1)
 	}
-
+	fmt.Println("[Operator] Sending command:", message)
 	buffer := make([]byte, 1024)
 	n, _ := conn.Read(buffer)
 	fmt.Println("Received:", string(buffer[:n]))
