@@ -6,7 +6,7 @@ from datetime import datetime
 HOST = "127.0.0.1"
 PORT = 65432
 
-with open("telemetry_log.csv", mode = "a", newline = "") as csvfile:
+with open("telemetry/telemetry_log.csv", mode = "a", newline = "") as csvfile:
     fieldnames = ["timestamp", "BAT", "TEMP", "ALT"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
