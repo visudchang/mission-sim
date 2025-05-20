@@ -3,9 +3,35 @@ import json
 import csv
 from datetime import datetime
 import threading
+import serial
 
 HOST = "127.0.0.1"
 PORT = 65432
+
+def serial_reader():
+    global latest_telemetry
+    ser = serial.Serial('/dev/tty.usbserial-0001', 9600)
+    while True:
+        try:
+            line = ser.readline().decode().strip()
+            print("[Serial Received]", line)
+            parts = dict(item.strip().split(":") for item in line.split(","))
+            print("[Parsed Telemetry]", parts)
+
+            normalized = {
+                "BAT": int(parts["BAT"]),
+                "TEMP": float(parts["TEMP"]),
+                "ALT": 420.0
+            }
+            
+            latest_telemetry = {
+                "BAT": normalized["BAT"],
+                "TEMP": normalized["TEMP"],
+                "ALT": normalized["ALT"],
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            print("[Serial Error]", e)
 
 def handle_connection(conn, addr, writer):
     global latest_telemetry
@@ -35,6 +61,9 @@ def handle_connection(conn, addr, writer):
                     print(f"[Telemetry Received] {telemetry}")
             except Exception as e:
                 print(f"[Error] {e}")
+
+serial_thread = threading.Thread(target = serial_reader, daemon = True)
+serial_thread.start()
 
 with open("telemetry/telemetry_log.csv", mode = "a", newline = "") as csvfile:
     fieldnames = ["timestamp", "BAT", "TEMP", "ALT"]
