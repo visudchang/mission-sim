@@ -1,7 +1,7 @@
 export default function DynamicsGraph() {
   return (
     <div className="bg-zinc-800 p-4 rounded-lg shadow-lg h-48">
-      <h2 className="text-lg font-semibold text-pink-400 mb-2">Velocity / Acceleration</h2>
+      <h2 className="text-md font-semibold text-blue-300 mb-2">Velocity / Acceleration</h2>
 
       <svg className="w-full h-full bg-zinc-900 rounded" viewBox="0 0 100 40">
         <polyline
@@ -12,7 +12,7 @@ export default function DynamicsGraph() {
         />
         <polyline
           fill="none"
-          stroke="red"
+          stroke="#9ca3af"
           strokeWidth="0.5"
           points="0,20 10,19 20,21 30,20 40,22 50,23 60,22 70,21 80,20 90,19 100,20"
         />

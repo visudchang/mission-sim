@@ -49,7 +49,7 @@ function Satellite() {
 export default function OrbitDisplay() {
   return (
     <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[400px] overflow-hidden">
-      <h2 className="text-lg font-semibold text-cyan-400 mb-2">Orbit Visualization</h2>
+      <h2 className="text-lg font-semibold text-blue-300 mb-2">Orbit Visualization</h2>
       <div className="w-full h-[360px] rounded-lg overflow-hidden">
         <Canvas className="rounded-lg">
           {/* Balanced lighting */}

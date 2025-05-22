@@ -32,13 +32,17 @@ function App() {
         </div>
       </div>
 
-      {/* Bottom row: Graphs + Time Controls */}
-      <div className="grid grid-cols-2 gap-4 pt-4">
-        <AttitudeGraph />
-        <DynamicsGraph />
-      </div>
-      <div className="pt-4">
-        <TimeControls />
+      {/* Bottom row: Time Controls + Graphs */}
+      <div className="grid grid-cols-24 gap-4 pt-4">
+        <div className="col-span-6">
+          <TimeControls />
+        </div>
+        <div className="col-span-9">
+          <AttitudeGraph />
+        </div>
+        <div className="col-span-9">
+          <DynamicsGraph />
+        </div>
       </div>
     </div>
   );

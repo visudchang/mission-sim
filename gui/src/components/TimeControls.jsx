@@ -1,24 +1,26 @@
 export default function TimeControls() {
   return (
-    <div className="bg-zinc-800 p-4 rounded-lg shadow-lg flex justify-between items-center">
-      <h2 className="text-lg font-semibold text-blue-400">Mission Time</h2>
+    <div className="bg-zinc-900 p-3 rounded-lg shadow-lg text-sm space-y-2 border border-zinc-700">
+      {/* Top line: title + mission time */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-md font-semibold text-blue-300">Mission Time</h2>
+        <span className="font-mono text-gray-300">T+00:42</span>
+      </div>
 
-      <div className="space-x-2 flex items-center">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+      {/* Bottom line: buttons */}
+      <div className="flex justify-between space-x-2">
+        <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded">
           ⏸ Pause
         </button>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+        <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded">
           ▶️ 1x
         </button>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+        <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded">
           ⏩ 5x
         </button>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+        <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded">
           🚀 10x
         </button>
-        <span className="ml-4 text-sm font-mono text-gray-300">
-          T+00:42
-        </span>
       </div>
     </div>
   )
