@@ -7,6 +7,7 @@ import MissionLog from './components/MissionLog';
 import AttitudeGraph from './components/AttitudeGraph';
 import DynamicsGraph from './components/DynamicsGraph';
 import TimeControls from './components/TimeControls';
+import "tailwindcss";
 
 function App() {
   return (
