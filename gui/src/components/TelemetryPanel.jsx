@@ -1,9 +1,4 @@
-export default function TelemetryPanel() {
-  const telemetry = {
-    BAT: 94,
-    TEMP: 36.5,
-    ALT: 412.2,
-  }
+export default function TelemetryPanel({ telemetry }) {
 
   return (
     <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-700 text-sm">
