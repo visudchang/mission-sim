@@ -16,9 +16,9 @@ export default function ControlPanel() {
       </div>
 
       <div className="flex flex-col space-y-1">
-        <button className="bg-slate-700 hover:bg-slate-600 text-white py-1 rounded">Execute Burn</button>
-        <button className="bg-slate-700 hover:bg-slate-600 text-white py-1 rounded">Set Orbit</button>
-        <button className="bg-slate-700 hover:bg-slate-600 text-white py-1 rounded">Stop Thrusters</button>
+        <button className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">Execute Burn</button>
+        <button className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">Set Orbit</button>
+        <button className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">Stop Thrusters</button>
       </div>
     </div>
   )
