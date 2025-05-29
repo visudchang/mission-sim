@@ -39,16 +39,30 @@ async def handler(websocket):
     print("[WebSocket] Client connected")
     connected_clients.add(websocket)
     try:
-        await websocket.wait_closed()
+        async for message in websocket:
+            print(f"[WebSocket] Received from frontend: {message}")
+            if message.startswith("BURN:"):
+                burn_value = message.split(":")[1]
+                await send_burn_to_tcp(burn_value)
+    except websockets.exceptions.ConnectionClosed:
+        pass
     finally:
         connected_clients.remove(websocket)
         print("[WebSocket] Client disconnected")
+
+async def send_burn_to_tcp(burn_value):
+    try:
+        with socket.create_connection((TCP_HOST, TCP_PORT)) as s:
+            command = f"BURN:{burn_value}\n".encode()
+            s.sendall(command)
+            print(f"[Bridge] Sent burn command to TCP server: {command.decode().strip()}")
+    except Exception as e:
+        print(f"[Bridge] Error sending burn command: {e}")
 
 async def main():
     print(f"[Bridge] Starting WebSocket server on ws://localhost:{WS_PORT}")
     ws_server = await websockets.serve(handler, "localhost", WS_PORT)
 
-    # Run both the TCP fetcher and WebSocket server loop
     await asyncio.gather(
         fetch_telemetry_from_tcp(),
         ws_server.wait_closed()
