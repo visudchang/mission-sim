@@ -5,7 +5,6 @@ import { Suspense, useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
 
 const EARTH_RADIUS_KM = 6371
-const DEFAULT_RADIUS = 1.47 // fallback
 
 function Earth() {
   const texture = useLoader(TextureLoader, '/src/assets/earth.jpg')
@@ -23,19 +22,12 @@ function Earth() {
   )
 }
 
-function OrbitRing({ position }) {
-  let radius = DEFAULT_RADIUS
-  if (position) {
-    const r_km = Math.sqrt(position[0]**2 + position[1]**2 + position[2]**2)
-    radius = r_km / EARTH_RADIUS_KM
-  }
+function OrbitRing({ path }) {
+  if (!path || path.length === 0) return null
 
-  const points = []
-  for (let i = 0; i <= 360; i++) {
-    const angle = (i * Math.PI) / 180
-    points.push(new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius))
-  }
-
+  const points = path.map(
+    ([x, y, z]) => new THREE.Vector3(x / EARTH_RADIUS_KM, y / EARTH_RADIUS_KM, z / EARTH_RADIUS_KM)
+  )
   const orbitPath = new THREE.BufferGeometry().setFromPoints(points)
 
   return (
@@ -50,17 +42,14 @@ function Satellite({ position }) {
 
   useFrame(() => {
     if (meshRef.current && position) {
-      const [x_km, y_km, z_km] = position
-      const x = x_km / EARTH_RADIUS_KM
-      const z = y_km / EARTH_RADIUS_KM // y → z
-      const y = z_km / EARTH_RADIUS_KM // z → y
+      const [x, y, z] = position.map(coord => coord / EARTH_RADIUS_KM)
       meshRef.current.position.set(x, y, z)
     }
   })
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[0.03, 32, 32]} />
+      <sphereGeometry args={[0.02, 32, 32]} />
       <meshBasicMaterial color="red" transparent opacity={0.7} />
     </mesh>
   )
@@ -68,15 +57,15 @@ function Satellite({ position }) {
 
 export default function OrbitDisplay() {
   const [position, setPosition] = useState(null)
+  const [orbitPath, setOrbitPath] = useState([])
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8765')
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        if (data.position) {
-          setPosition(data.position)
-        }
+        if (data.position) setPosition(data.position)
+        if (data.orbitPath) setOrbitPath(data.orbitPath)
       } catch (err) {
         console.error('[OrbitDisplay] Telemetry parse error:', err)
       }
@@ -95,11 +84,11 @@ export default function OrbitDisplay() {
 
           <Suspense fallback={null}>
             <Earth />
-            <OrbitRing position={position} />
+            <OrbitRing path={orbitPath} />
             <Satellite position={position} />
           </Suspense>
 
-          <Stars radius={1000} depth={50} count={5000} factor={4} saturation={0} fade />
+          <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade />
           <OrbitControls />
         </Canvas>
       </div>

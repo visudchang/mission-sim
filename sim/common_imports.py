@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from astropy import units as u
 from poliastro.bodies import Earth
 from poliastro.twobody import Orbit
-from poliastro.plotting.static import StaticOrbitPlotter
+# from poliastro.plotting.static import StaticOrbitPlotter
 import matplotlib.pyplot as plt
 from poliastro.plotting import OrbitPlotter3D, OrbitPlotter2D
 from plotly.offline import plot

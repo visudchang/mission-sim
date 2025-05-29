@@ -3,6 +3,9 @@ import numpy as np
 from astropy import units as u
 from poliastro.maneuver import Maneuver
 from poliastro.bodies import Earth
+from sim.visualization.generate_orbit_points import get_orbit_path_km
+import matplotlib
+matplotlib.use("Agg")  # Use non-GUI backend
 
 class Spacecraft:
     def __init__(self, initial_orbit):
@@ -36,5 +39,9 @@ class Spacecraft:
             "ACC": np.linalg.norm(self.acceleration).to(u.km / u.s**2).value,
             "timestamp": datetime.now().isoformat(),
             "position": self.position.to_value(u.km).tolist(),
-            "velocity": self.velocity.to_value(u.km / u.s).tolist()
+            "velocity": self.velocity.to_value(u.km / u.s).tolist(),
+            "orbitPath": get_orbit_path_km(self.orbit)
         }
+
+    def get_orbit_path(self):
+        return get_orbit_path_km(self.orbit)

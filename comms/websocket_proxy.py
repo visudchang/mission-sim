@@ -10,62 +10,52 @@ WS_PORT = 8765
 connected_clients = set()
 
 async def fetch_telemetry_from_tcp():
+    buffer = ""
     while True:
         try:
             with socket.create_connection((TCP_HOST, TCP_PORT)) as s:
                 print("[Bridge] Connected to TCP ground station")
                 while True:
                     s.sendall(b"GET_STATUS\n")
-                    data = s.recv(1024).decode()
-                    try:
-                        telemetry = json.loads(data)
-                        await broadcast(json.dumps(telemetry))
-                        await asyncio.sleep(1)
-                    except json.JSONDecodeError:
-                        print("[Bridge] Invalid telemetry JSON")
-                        await asyncio.sleep(1)
+                    chunk = s.recv(8192).decode()
+                    buffer += chunk
+
+                    # Try to parse complete JSON objects in the buffer
+                    while True:
+                        try:
+                            obj, idx = json.JSONDecoder().raw_decode(buffer)
+                            buffer = buffer[idx:].lstrip()
+                            await broadcast(json.dumps(obj))
+                        except json.JSONDecodeError:
+                            # Incomplete JSON, wait for next chunk
+                            break
+
+                    await asyncio.sleep(1)
         except Exception as e:
-            print(f"[Bridge Error] {e}")
+            print("[Bridge] Connection error:", e)
             await asyncio.sleep(2)
 
 async def broadcast(message):
-    for ws in connected_clients.copy():
+    for client in connected_clients.copy():
         try:
-            await ws.send(message)
+            await client.send(message)
         except:
-            connected_clients.remove(ws)
+            connected_clients.remove(client)
 
 async def handler(websocket):
-    print("[WebSocket] Client connected")
     connected_clients.add(websocket)
+    print("[WebSocket] Client connected")
     try:
-        async for message in websocket:
-            print(f"[WebSocket] Received from frontend: {message}")
-            if message.startswith("BURN:"):
-                burn_value = message.split(":")[1]
-                await send_burn_to_tcp(burn_value)
-    except websockets.exceptions.ConnectionClosed:
-        pass
+        async for _ in websocket:
+            pass
     finally:
         connected_clients.remove(websocket)
-        print("[WebSocket] Client disconnected")
-
-async def send_burn_to_tcp(burn_value):
-    try:
-        with socket.create_connection((TCP_HOST, TCP_PORT)) as s:
-            command = f"BURN:{burn_value}\n".encode()
-            s.sendall(command)
-            print(f"[Bridge] Sent burn command to TCP server: {command.decode().strip()}")
-    except Exception as e:
-        print(f"[Bridge] Error sending burn command: {e}")
 
 async def main():
     print(f"[Bridge] Starting WebSocket server on ws://localhost:{WS_PORT}")
-    ws_server = await websockets.serve(handler, "localhost", WS_PORT)
-
     await asyncio.gather(
-        fetch_telemetry_from_tcp(),
-        ws_server.wait_closed()
+        websockets.serve(handler, "localhost", WS_PORT),
+        fetch_telemetry_from_tcp()
     )
 
 if __name__ == "__main__":

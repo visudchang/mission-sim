@@ -61,37 +61,37 @@ def handle_connection(conn, addr, writer):
                 decoded = data.decode().strip()
 
                 if decoded == "GET_STATUS":
-                    try:
-                        now = datetime.now()
-                        spacecraft.propagate(now)
-                        telemetry = spacecraft.get_telemetry()
+                    now = datetime.now()
+                    spacecraft.propagate(now)
+                    telemetry = spacecraft.get_telemetry()
 
-                        latest_telemetry = telemetry
-                        response = json.dumps(telemetry).encode()
-                        conn.sendall(response)
-                        print("[Ground Station] Sent latest telemetry:", telemetry)
+                    latest_telemetry = telemetry
+                    response = json.dumps(telemetry).encode()
+                    conn.sendall(response)
+                    safe_telemetry = {k: v for k, v in telemetry.items() if k != "orbitPath"}
+                    print(f"[Ground Station] Sent latest telemetry: {safe_telemetry}")
 
-                        csv_safe = {k: telemetry.get(k, "") for k in writer.fieldnames}
-                        writer.writerow(csv_safe)
-                        csvfile.flush()
-                    except Exception as e:
-                        print("[Telemetry Error]", e)
+                    csv_safe = {k: telemetry.get(k, "") for k in writer.fieldnames}
+                    writer.writerow(csv_safe)
+                    csvfile.flush()
 
                 elif decoded.startswith("BURN:"):
-                    try:
-                        burn_str = decoded.split(":")[1]
-                        dv_components = [float(x) for x in burn_str.split(",")]
-                        if len(dv_components) != 3:
-                            raise ValueError("Burn must have 3 components")
+                    burn_str = decoded.split(":")[1]
+                    dv_components = [float(x) for x in burn_str.split(",")]
+                    if len(dv_components) != 3:
+                        raise ValueError("Burn must have 3 components")
 
-                        delta_v_vec = np.array(dv_components) * u.km / u.s
-                        spacecraft.apply_burn(delta_v_vec)
-                        print(f"[Burn Executed] Δv = {delta_v_vec}")
-                    except Exception as e:
-                        print(f"[Burn Error] Invalid burn command: {decoded} | Error: {e}")
+                    delta_v_vec = np.array(dv_components) * u.km / u.s
+                    spacecraft.apply_burn(delta_v_vec)
+                    print(f"[Burn Executed] Δv = {delta_v_vec}")
+
+                    orbit_path = spacecraft.get_orbit_path()
+                    telemetry = spacecraft.get_telemetry()
+                    telemetry["orbitPath"] = orbit_path
+                    conn.sendall(json.dumps(telemetry).encode())
+                    print("[Ground Station] Sent updated orbitPath")
 
                 else:
-                    # Assume full telemetry JSON input (e.g., fallback)
                     telemetry = json.loads(decoded)
                     telemetry["timestamp"] = datetime.now().isoformat()
                     latest_telemetry = telemetry

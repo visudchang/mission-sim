@@ -14,7 +14,6 @@ import { useEffect, useState } from 'react';
 function App() {
   const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0 });
   const [logEntries, setLogEntries] = useState([]);
-  const [position, setPosition] = useState(null);
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8765');
@@ -33,12 +32,8 @@ function App() {
           ALT: data.ALT
         });
 
-        if (data.position) {
-          setPosition(data.position);
-        }
-
         setLogEntries(prev => [
-          `[${new Date(data.timestamp).toLocaleTimeString()}] BAT: ${data.BAT}% TEMP: ${data.TEMP}°C ALT: ${data.ALT}m`,
+          `[${new Date(data.timestamp).toLocaleTimeString()}] BAT: ${data.BAT}% TEMP: ${data.TEMP}°C ALT: ${data.ALT}km`,
           ...prev
         ].slice(0, 10));
       } catch (err) {
@@ -47,7 +42,7 @@ function App() {
     };
 
     socket.onerror = (err) => console.error('[Frontend] WebSocket error:', err);
-    socket.onclose = () => console.log('[Frontend] Websocket closed');
+    socket.onclose = () => console.log('[Frontend] WebSocket closed');
 
     return () => socket.close();
   }, []);
@@ -64,7 +59,7 @@ function App() {
 
         {/* Center visualization */}
         <div className="col-span-2">
-          <OrbitDisplay position={position} />
+          <OrbitDisplay />
         </div>
 
         {/* Right column */}
