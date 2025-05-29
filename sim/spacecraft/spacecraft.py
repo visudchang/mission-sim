@@ -34,5 +34,7 @@ class Spacecraft:
             "VEL": np.linalg.norm(self.velocity).to(u.km / u.s).value,
             "ALT": (np.linalg.norm(self.position) - Earth.R).to(u.km).value,
             "ACC": np.linalg.norm(self.acceleration).to(u.km / u.s**2).value,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "position": self.position.to_value(u.km).tolist(),
+            "velocity": self.velocity.to_value(u.km / u.s).tolist()
         }

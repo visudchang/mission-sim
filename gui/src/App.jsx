@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 function App() {
   const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0 });
   const [logEntries, setLogEntries] = useState([]);
+  const [position, setPosition] = useState(null);
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8765');
@@ -32,6 +33,10 @@ function App() {
           ALT: data.ALT
         });
 
+        if (data.position) {
+          setPosition(data.position);
+        }
+
         setLogEntries(prev => [
           `[${new Date(data.timestamp).toLocaleTimeString()}] BAT: ${data.BAT}% TEMP: ${data.TEMP}°C ALT: ${data.ALT}m`,
           ...prev
@@ -46,6 +51,7 @@ function App() {
 
     return () => socket.close();
   }, []);
+
   return (
     <div className="min-h-screen w-screen bg-zinc-900 text-white p-4 space-y-4">
       <Header />
@@ -58,7 +64,7 @@ function App() {
 
         {/* Center visualization */}
         <div className="col-span-2">
-          <OrbitDisplay />
+          <OrbitDisplay position={position} />
         </div>
 
         {/* Right column */}
@@ -70,13 +76,10 @@ function App() {
 
       {/* Bottom row: Time Controls + Graphs */}
       <div className="grid grid-cols-12 gap-4 pt-4">
-        {/* Left column (stacked FlightData + TimeControls) */}
         <div className="col-span-3 space-y-2 flex flex-col justify-between">
           <FlightDataPanel />
           <TimeControls />
         </div>
-
-        {/* Right two-thirds (graphs) */}
         <div className="col-span-9 grid grid-cols-2 gap-4">
           <AttitudeGraph />
           <DynamicsGraph />

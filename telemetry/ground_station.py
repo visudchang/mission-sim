@@ -71,7 +71,8 @@ def handle_connection(conn, addr, writer):
                         conn.sendall(response)
                         print("[Ground Station] Sent latest telemetry:", telemetry)
 
-                        writer.writerow(telemetry)
+                        csv_safe = {k: telemetry.get(k, "") for k in writer.fieldnames}
+                        writer.writerow(csv_safe)
                         csvfile.flush()
                     except Exception as e:
                         print("[Telemetry Error]", e)
@@ -94,7 +95,8 @@ def handle_connection(conn, addr, writer):
                     telemetry = json.loads(decoded)
                     telemetry["timestamp"] = datetime.now().isoformat()
                     latest_telemetry = telemetry
-                    writer.writerow(telemetry)
+                    csv_safe = {k: telemetry.get(k, "") for k in writer.fieldnames}
+                    writer.writerow(csv_safe)
                     csvfile.flush()
                     print(f"[Telemetry Received] {telemetry}")
 

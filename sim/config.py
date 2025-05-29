@@ -6,7 +6,7 @@ from astropy.time import Time
 mission_config = {
     "epoch": Time("2025-01-01 00:00:00", scale = "utc"),
     "attractor": Earth,
-    "a": Earth.R + 500 * u.km,
+    "a": Earth.R + 4000 * u.km,
     "ecc": 0 * u.one,
     "inc": 0 * u.deg,
     "raan": 0 * u.deg,
