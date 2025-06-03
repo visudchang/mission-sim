@@ -85,9 +85,7 @@ def handle_connection(conn, addr, writer):
                     spacecraft.apply_burn(delta_v_vec)
                     print(f"[Burn Executed] Δv = {delta_v_vec}")
 
-                    orbit_path = spacecraft.get_orbit_path()
-                    telemetry = spacecraft.get_telemetry()
-                    telemetry["orbitPath"] = orbit_path
+                    telemetry = spacecraft.get_telemetry(include_path=True)
                     conn.sendall(json.dumps(telemetry).encode())
                     print("[Ground Station] Sent updated orbitPath")
 

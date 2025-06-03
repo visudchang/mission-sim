@@ -22,16 +22,16 @@ function Earth() {
   )
 }
 
-function OrbitRing({ path }) {
-  if (!path || path.length === 0) return null
+function OrbitTrail({ trail }) {
+  if (!trail || trail.length < 2) return null
 
-  const points = path.map(
+  const points = trail.map(
     ([x, y, z]) => new THREE.Vector3(x / EARTH_RADIUS_KM, y / EARTH_RADIUS_KM, z / EARTH_RADIUS_KM)
   )
-  const orbitPath = new THREE.BufferGeometry().setFromPoints(points)
+  const geometry = new THREE.BufferGeometry().setFromPoints(points)
 
   return (
-    <line geometry={orbitPath}>
+    <line geometry={geometry}>
       <lineBasicMaterial attach="material" color="white" linewidth={2} />
     </line>
   )
@@ -57,15 +57,17 @@ function Satellite({ position }) {
 
 export default function OrbitDisplay() {
   const [position, setPosition] = useState(null)
-  const [orbitPath, setOrbitPath] = useState([])
+  const [trail, setTrail] = useState([])
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8765')
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        if (data.position) setPosition(data.position)
-        if (data.orbitPath) setOrbitPath(data.orbitPath)
+        if (data.position) {
+          setPosition(data.position)
+          setTrail(prev => [...prev.slice(-500), data.position]) // limit trail length
+        }
       } catch (err) {
         console.error('[OrbitDisplay] Telemetry parse error:', err)
       }
@@ -84,7 +86,7 @@ export default function OrbitDisplay() {
 
           <Suspense fallback={null}>
             <Earth />
-            <OrbitRing path={orbitPath} />
+            <OrbitTrail trail={trail} />
             <Satellite position={position} />
           </Suspense>
 

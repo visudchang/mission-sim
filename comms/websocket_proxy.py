@@ -9,30 +9,33 @@ WS_PORT = 8765
 
 connected_clients = set()
 
+tcp_writer = None  # Will hold TCP connection writer
+
 async def fetch_telemetry_from_tcp():
+    global tcp_writer
     buffer = ""
     while True:
         try:
             with socket.create_connection((TCP_HOST, TCP_PORT)) as s:
+                tcp_writer = s
                 print("[Bridge] Connected to TCP ground station")
                 while True:
                     s.sendall(b"GET_STATUS\n")
                     chunk = s.recv(8192).decode()
                     buffer += chunk
 
-                    # Try to parse complete JSON objects in the buffer
                     while True:
                         try:
                             obj, idx = json.JSONDecoder().raw_decode(buffer)
                             buffer = buffer[idx:].lstrip()
                             await broadcast(json.dumps(obj))
                         except json.JSONDecodeError:
-                            # Incomplete JSON, wait for next chunk
                             break
 
                     await asyncio.sleep(1)
         except Exception as e:
             print("[Bridge] Connection error:", e)
+            tcp_writer = None
             await asyncio.sleep(2)
 
 async def broadcast(message):
@@ -43,11 +46,20 @@ async def broadcast(message):
             connected_clients.remove(client)
 
 async def handler(websocket):
+    global tcp_writer
     connected_clients.add(websocket)
     print("[WebSocket] Client connected")
     try:
-        async for _ in websocket:
-            pass
+        async for message in websocket:
+            print(f"[WebSocket] Received from browser: {message}")
+            if tcp_writer:
+                try:
+                    tcp_writer.sendall(message.encode())
+                    print(f"[Bridge] Sent to TCP: {message}")
+                except Exception as e:
+                    print(f"[Bridge] Failed to send to TCP: {e}")
+            else:
+                print("[Bridge] TCP connection not established")
     finally:
         connected_clients.remove(websocket)
 
