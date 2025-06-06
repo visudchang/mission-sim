@@ -9,11 +9,30 @@ import DynamicsGraph from './components/DynamicsGraph';
 import TimeControls from './components/TimeControls';
 import FlightDataPanel from './components/FlightDataPanel';
 import "tailwindcss";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 function App() {
   const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0 });
   const [logEntries, setLogEntries] = useState([]);
+  const [missionTime, setMissionTime] = useState(0);
+  const [timeScale, setTimeScale] = useState(1);
+  const lastUpdateRef = useRef(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const elapsed = (now - lastUpdateRef.current) / 1000;
+      lastUpdateRef.current = now;
+
+      setMissionTime(prev => {
+        const updated = prev + elapsed * timeScale;
+        // console.log("[App] Advancing missionTime to:", updated.toFixed(2));
+        return updated;
+      });
+    }, 1000 / 24); // Target ~24 FPS
+
+    return () => clearInterval(interval);
+  }, [timeScale]);
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8765');
@@ -33,7 +52,7 @@ function App() {
         });
 
         setLogEntries(prev => [
-          `[${new Date(data.timestamp).toLocaleTimeString()}] BAT: ${data.BAT}% TEMP: ${data.TEMP}°C ALT: ${data.ALT}km`,
+          `[BAT: ${data.BAT}% | TEMP: ${data.TEMP}°C | ALT: ${data.ALT}km]`,
           ...prev
         ].slice(0, 10));
       } catch (err) {
@@ -59,7 +78,7 @@ function App() {
 
         {/* Center visualization */}
         <div className="col-span-2">
-          <OrbitDisplay />
+          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} />
         </div>
 
         {/* Right column */}
@@ -73,7 +92,7 @@ function App() {
       <div className="grid grid-cols-12 gap-4 pt-4">
         <div className="col-span-3 space-y-2 flex flex-col justify-between">
           <FlightDataPanel />
-          <TimeControls />
+          <TimeControls missionTime={missionTime} setTimeScale={setTimeScale} />
         </div>
         <div className="col-span-9 grid grid-cols-2 gap-4">
           <AttitudeGraph />

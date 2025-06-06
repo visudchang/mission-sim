@@ -39,11 +39,19 @@ function OrbitTrail({ trail }) {
 
 function Satellite({ position }) {
   const meshRef = useRef()
+  const lastPos = useRef(null)
 
   useFrame(() => {
     if (meshRef.current && position) {
-      const [x, y, z] = position.map(coord => coord / EARTH_RADIUS_KM)
-      meshRef.current.position.set(x, y, z)
+      const scaled = position.map(coord => coord / EARTH_RADIUS_KM)
+      meshRef.current.position.set(...scaled)
+
+      const rounded = scaled.map(x => x.toFixed(5))
+      const same = lastPos.current?.every((val, i) => val === rounded[i])
+      if (!same) {
+        console.log("[Satellite] Updated position to:", rounded)
+        lastPos.current = rounded
+      }
     }
   })
 
@@ -55,31 +63,38 @@ function Satellite({ position }) {
   )
 }
 
-export default function OrbitDisplay() {
+export default function OrbitDisplay({ missionTime, timeScale }) {
   const [position, setPosition] = useState(null)
   const [trail, setTrail] = useState([])
 
+  const missionTimeRef = useRef(missionTime)
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8765')
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        if (data.position) {
-          setPosition(data.position)
-          setTrail(prev => [...prev.slice(-500), data.position]) // limit trail length
-        }
-      } catch (err) {
-        console.error('[OrbitDisplay] Telemetry parse error:', err)
-      }
-    }
-    return () => socket.close()
+    missionTimeRef.current = missionTime
+  }, [missionTime])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const t = missionTimeRef.current
+      fetch('http://localhost:5000/propagate?missionTime=' + t)
+        .then(res => res.json())
+        .then(data => {
+          if (data.position) {
+            const pos = [...data.position]
+            setPosition(pos)
+            setTrail(prev => [...prev.slice(-500), pos])
+          }
+        })
+        .catch(err => console.error('[OrbitDisplay] Fetch error:', err))
+    }, 1000 / 24)
+
+    return () => clearInterval(interval)
   }, [])
 
   return (
     <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[400px] overflow-hidden">
       <h2 className="text-lg font-semibold text-blue-300 mb-2">Orbit Visualization</h2>
       <div className="w-full h-[360px] rounded-lg overflow-hidden">
-        <Canvas className="rounded-lg">
+        <Canvas camera={{ position: [0, 0, 20], fov: 45 }}>
           <ambientLight intensity={1.0} />
           <directionalLight position={[3, 2, 1]} intensity={1.5} />
           <pointLight position={[-3, -2, -1]} intensity={1} />
@@ -91,7 +106,7 @@ export default function OrbitDisplay() {
           </Suspense>
 
           <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade />
-          <OrbitControls />
+          <OrbitControls target={[0, 0, 0]} minDistance={1} maxDistance={100} />
         </Canvas>
       </div>
     </div>
