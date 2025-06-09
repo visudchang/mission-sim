@@ -20,43 +20,49 @@ class Spacecraft:
         self.burns = []  # list of (mission_time, delta_v_vec)
         self.history = []  # list of (event_type, value, mission_time)
         self.orbit_path = get_orbit_path_km(self.orbit)
+        self.mission_start = datetime.now()
 
     def apply_burn(self, delta_v_vec):
         magnitude = np.linalg.norm(delta_v_vec)
         if magnitude == 0:
             return
 
-        # Burn happens at current mission time, not future propagation
-        maneuver = Maneuver.impulse(delta_v_vec)
-        self.orbit = self.orbit.apply_maneuver(maneuver)
-        self.velocity = self.orbit.v
-        self.position = self.orbit.r
-        self.acceleration = (self.thrust / self.mass) * (delta_v_vec / magnitude)
-        self.acceleration = self.acceleration.to(u.km / u.s**2)
+        # Compute relative mission time in seconds
+        mission_time = (datetime.now() - self.mission_start).total_seconds() * u.s
+        self.burns.append((mission_time, delta_v_vec))
+        self.history.append(("burn", delta_v_vec, mission_time))
+        print(f"[Spacecraft] Logged burn at T+{mission_time:.2f}: Δv = {delta_v_vec}")
 
-        self.burns.append((datetime.now(), delta_v_vec))
-        self.history.append(("burn", delta_v_vec, datetime.now()))
-        self.orbit_path = get_orbit_path_km(self.orbit)
+    def propagate(self, mission_time_seconds):
+        mission_time = mission_time_seconds * u.s
+        print(f"\n[Spacecraft] Propagating to T+{mission_time:.2f}")
 
-    def propagate(self, current_time):
-        # Convert datetime to Astropy Time
-        target_time = Time(current_time)
-
-        # Recompute orbit from initial + all burns
+        # Reset to initial orbit before reapplying burns
         self.orbit = self.initial_orbit
-        for _, delta_v_vec in self.burns:
-            self.orbit = self.orbit.apply_maneuver(Maneuver.impulse(delta_v_vec))
 
-        # Propagate to the new current_time
-        self.orbit = self.orbit.propagate(target_time)
+        if not self.burns:
+            print("[Spacecraft] No burns recorded.")
+        else:
+            print(f"[Spacecraft] {len(self.burns)} burn(s) on record:")
+            for i, (burn_time, delta_v_vec) in enumerate(self.burns):
+                print(f"  Burn {i}: T+{burn_time:.2f}, Δv = {delta_v_vec}")
 
-        # Update state vectors
+        # Apply burns that should have occurred by this time
+        for burn_time, delta_v_vec in self.burns:
+            if burn_time < mission_time:
+                print(f"  ➤ Applying burn at T+{burn_time:.2f}")
+                self.orbit = self.orbit.apply_maneuver(Maneuver.impulse(delta_v_vec))
+            else:
+                print(f"  ✘ Skipping burn at T+{burn_time:.2f} (in the future)")
+
+        self.orbit = self.orbit.propagate(mission_time)
         self.position = self.orbit.r
         self.velocity = self.orbit.v
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
 
-        print("[Spacecraft] Propagated to:", current_time.isoformat())
-        print("[Spacecraft] Position (km):", self.orbit.r.to_value(u.km).tolist())
+        print("[Spacecraft] Final position (km):", self.orbit.r.to_value(u.km))
+        print("[Spacecraft] Final velocity (km/s):", self.orbit.v.to_value(u.km / u.s))
+
 
     def get_telemetry(self, include_path=False):
         telemetry = {

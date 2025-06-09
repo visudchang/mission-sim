@@ -81,7 +81,14 @@ export default function OrbitDisplay({ missionTime, timeScale }) {
           if (data.position) {
             const pos = [...data.position]
             setPosition(pos)
-            setTrail(prev => [...prev.slice(-500), pos])
+          }
+
+          if (data.orbitPath) {
+            // Full orbit path update from backend
+            setTrail([...data.orbitPath])
+          } else if (data.position) {
+            // Append single new point if no path was sent
+            setTrail(prev => [...prev, [...data.position]])
           }
         })
         .catch(err => console.error('[OrbitDisplay] Fetch error:', err))

@@ -5,7 +5,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import socket
 import json
 import csv
-from datetime import datetime, timedelta
 import threading
 import serial
 import numpy as np
@@ -24,17 +23,17 @@ PORT = 65432
 
 spacecraft = Spacecraft(orb0)
 telemetry_log = []
-mission_start = datetime.now()
 
 @app.route("/propagate")
 def propagate():
     try:
         t = float(request.args.get("missionTime", 0))
-        now = mission_start + timedelta(seconds=t)
-        spacecraft.propagate(now)
+        print(f"[Flask] Received missionTime = {t}")
+        spacecraft.propagate(t)  # t is mission time in seconds
         telemetry = spacecraft.get_telemetry()
         return jsonify(telemetry)
     except Exception as e:
+        print("[Flask ERROR]", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/")
@@ -49,7 +48,7 @@ def serial_reader():
             print("[Serial Received]", line)
             parts = dict(item.strip().split(":") for item in line.split(","))
 
-            spacecraft.propagate(datetime.now())
+            # No propagation here – keep sim time consistent
             orbital_data = spacecraft.get_telemetry()
 
             telemetry = {
@@ -58,7 +57,7 @@ def serial_reader():
                 "VEL": orbital_data["VEL"],
                 "ALT": orbital_data["ALT"],
                 "ACC": orbital_data["ACC"],
-                "timestamp": orbital_data["timestamp"]
+                "missionTime": orbital_data["missionTime"]
             }
 
             telemetry_log.append(telemetry)
@@ -78,8 +77,7 @@ def handle_connection(conn, addr, writer, csvfile):
                 decoded = data.decode().strip()
 
                 if decoded == "GET_STATUS":
-                    now = datetime.now()
-                    spacecraft.propagate(now)
+                    # Return latest telemetry without propagating
                     telemetry = spacecraft.get_telemetry()
                     response = json.dumps(telemetry).encode()
                     conn.sendall(response)
@@ -90,14 +88,11 @@ def handle_connection(conn, addr, writer, csvfile):
                     csvfile.flush()
 
                 elif decoded.startswith("BURN:"):
-                    burn_str = decoded.split(":")[1]
-                    dv_components = [float(x) for x in burn_str.split(",")]
-                    if len(dv_components) != 3:
-                        raise ValueError("Burn must have 3 components")
+                    parts = decoded[5:].split(",")
+                    dv = [float(p) for p in parts[:3]]
+                    spacecraft.apply_burn(np.array(dv) * u.km / u.s)
 
-                    delta_v_vec = np.array(dv_components) * u.km / u.s
-                    spacecraft.apply_burn(delta_v_vec)
-                    print(f"[Burn Executed] Δv = {delta_v_vec}")
+                    print(f"[Burn Executed] Δv = {dv}")
 
                     telemetry = spacecraft.get_telemetry(include_path=True)
                     conn.sendall(json.dumps(telemetry).encode())
@@ -105,7 +100,7 @@ def handle_connection(conn, addr, writer, csvfile):
 
                 else:
                     telemetry = json.loads(decoded)
-                    telemetry["timestamp"] = datetime.now().isoformat()
+                    telemetry["missionTime"] = spacecraft.mission_time.to_value(u.s)
                     csv_safe = {k: telemetry.get(k, "") for k in writer.fieldnames}
                     writer.writerow(csv_safe)
                     csvfile.flush()
@@ -126,11 +121,12 @@ def socket_server(writer, csvfile):
             thread.start()
 
 if __name__ == "__main__":
+    # Uncomment to enable hardware serial telemetry
     # serial_thread = threading.Thread(target=serial_reader, daemon=True)
     # serial_thread.start()
 
     with open("telemetry/telemetry_log.csv", mode="a", newline="") as csvfile:
-        fieldnames = ["timestamp", "BAT", "TEMP", "VEL", "ALT", "ACC"]
+        fieldnames = ["missionTime", "BAT", "TEMP", "VEL", "ALT", "ACC"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         if csvfile.tell() == 0:
@@ -142,4 +138,3 @@ if __name__ == "__main__":
         socket_thread.start()
 
         app.run(host="0.0.0.0", port=5000, debug=True)
-
