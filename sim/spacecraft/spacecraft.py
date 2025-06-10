@@ -23,49 +23,36 @@ class Spacecraft:
         self.mission_time = 0.0 * u.s
 
     def apply_burn(self, delta_v_vec):
-        magnitude = np.linalg.norm(delta_v_vec)
-        if magnitude == 0:
+        if np.linalg.norm(delta_v_vec) == 0:
             return
 
         mission_time = self.mission_time
+
+        print(f"[Spacecraft] Applying immediate burn at T+{mission_time:.2f}")
+
+        self.orbit = self.orbit.apply_maneuver(Maneuver.impulse(delta_v_vec))
+        self.velocity = self.orbit.v
+        self.position = self.orbit.r
+
         self.burns.append((mission_time, delta_v_vec))
         self.history.append(("burn", delta_v_vec, mission_time))
-        # print("[DEBUG] Spacecraft burn2 instance ID:", id(self))
-        # print(f"[Spacecraft] Logged burn at T+{mission_time:.2f}: Δv = {delta_v_vec}")
-       
 
     def propagate(self, mission_time_seconds):
         mission_time = mission_time_seconds * u.s
-        # print(f"\n[Spacecraft] Propagating to T+{mission_time:.2f}")
+        
+        # Always propagate from current state
+        dt = mission_time - self.mission_time
+        if dt <= 0 * u.s:
+            print(f"[Spacecraft] Already at T+{self.mission_time:.2f}")
+            return
 
-        # Reset to initial orbit before reapplying burns
-        self.orbit = self.initial_orbit
-
-        print(f"self.burns: {self.burns}")
-        if self.burns:
-            print(f"[Spacecraft] {len(self.burns)} burn(s) on record:")
-            for i, (burn_time, delta_v_vec) in enumerate(self.burns):
-                print(f"  Burn {i}: T+{burn_time:.2f}, Δv = {delta_v_vec}")
-
-        # Apply burns that should have occurred by this time
-        for burn_time, delta_v_vec in self.burns:
-            if burn_time < mission_time:
-                print(f"  ➤ Applying burn at T+{burn_time:.2f}")
-                self.orbit = self.orbit.apply_maneuver(Maneuver.impulse(delta_v_vec))
-            else:
-                print(f"  ✘ Skipping burn at T+{burn_time:.2f} (in the future)")
-
-        self.orbit = self.orbit.propagate(mission_time)
+        print(f"[Spacecraft] Advancing by {dt:.2f}")
+        self.orbit = self.orbit.propagate(dt)
         self.position = self.orbit.r
         self.velocity = self.orbit.v
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
-        # print("[DEBUG] Spacecraft instance ID:", id(self))
-
-
-        # print("[Spacecraft] Final position (km):", self.orbit.r.to_value(u.km))
-        # print("[Spacecraft] Final velocity (km/s):", self.orbit.v.to_value(u.km / u.s))
-
-
+        self.mission_time = mission_time
+        
     def get_telemetry(self, include_path=False):
         telemetry = {
             "VEL": np.linalg.norm(self.velocity).to(u.km / u.s).value,
