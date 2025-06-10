@@ -31,6 +31,7 @@ def propagate():
     try:
         t = float(request.args.get("missionTime", 0))
         # print(f"[Flask] Received missionTime = {t}")
+        # spacecraft.mission_time = t * u.s
         spacecraft.propagate(t)  # t is mission time in seconds
         telemetry = spacecraft.get_telemetry()
         return jsonify(telemetry)
@@ -93,7 +94,8 @@ def handle_connection(conn, addr, writer, csvfile):
                 elif decoded.startswith("BURN:"):
                     parts = decoded[5:].split(",")
                     dv = [float(p) for p in parts[:3]]
-                    spacecraft.apply_burn(np.array(dv) * u.km / u.s)
+                    t = float(parts[3])
+                    spacecraft.apply_burn(np.array(dv) * u.km / u.s, mission_time_seconds=t)
 
                     print(f"[Burn Executed] Δv = {dv}")
 
@@ -141,3 +143,7 @@ if __name__ == "__main__":
         socket_thread.start()
 
         app.run(host="0.0.0.0", port=5000, debug=False)
+
+@app.route("/current_time")
+def current_time():
+    return jsonify({"missionTime": spacecraft.mission_time.to_value(u.s)})

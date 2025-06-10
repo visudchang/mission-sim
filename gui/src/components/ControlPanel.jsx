@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function ControlPanel() {
+export default function ControlPanel({ missionTime }) {
   const [dvX, setDvX] = useState(0.1);
   const [dvY, setDvY] = useState(0);
   const [dvZ, setDvZ] = useState(0);
@@ -28,7 +28,7 @@ export default function ControlPanel() {
 
   const handleExecuteBurn = () => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      const message = `BURN:${dvX},${dvY},${dvZ}`;
+      const message = `BURN:${dvX},${dvY},${dvZ},${missionTime.toFixed(2)}`;
       socketRef.current.send(message);
       console.log('[ControlPanel] Sent:', message);
     } else {

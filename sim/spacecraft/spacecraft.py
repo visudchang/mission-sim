@@ -22,11 +22,11 @@ class Spacecraft:
         self.orbit_path = get_orbit_path_km(self.orbit)
         self.mission_time = 0.0 * u.s
 
-    def apply_burn(self, delta_v_vec):
+    def apply_burn(self, delta_v_vec, mission_time_seconds=None):
         if np.linalg.norm(delta_v_vec) == 0:
             return
 
-        mission_time = self.mission_time
+        mission_time = self.mission_time if mission_time_seconds is None else mission_time_seconds * u.s
 
         print(f"[Spacecraft] Applying immediate burn at T+{mission_time:.2f}")
 
@@ -52,7 +52,7 @@ class Spacecraft:
         self.velocity = self.orbit.v
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
         self.mission_time = mission_time
-        
+
     def get_telemetry(self, include_path=False):
         telemetry = {
             "VEL": np.linalg.norm(self.velocity).to(u.km / u.s).value,

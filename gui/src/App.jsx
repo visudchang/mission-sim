@@ -73,7 +73,7 @@ function App() {
         {/* Left column */}
         <div className="col-span-1 space-y-4">
           <TelemetryPanel telemetry={telemetry} />
-          <ControlPanel />
+          <ControlPanel missionTime={missionTime} />
         </div>
 
         {/* Center visualization */}
@@ -92,7 +92,7 @@ function App() {
       <div className="grid grid-cols-12 gap-4 pt-4">
         <div className="col-span-3 space-y-2 flex flex-col justify-between">
           <FlightDataPanel />
-          <TimeControls missionTime={missionTime} setTimeScale={setTimeScale} />
+          <TimeControls missionTime={missionTime} setMissionTime={setMissionTime} setTimeScale={setTimeScale} />
         </div>
         <div className="col-span-9 grid grid-cols-2 gap-4">
           <AttitudeGraph />
