@@ -20,29 +20,29 @@ class Spacecraft:
         self.burns = []  # list of (mission_time, delta_v_vec)
         self.history = []  # list of (event_type, value, mission_time)
         self.orbit_path = get_orbit_path_km(self.orbit)
-        self.mission_start = datetime.now()
+        self.mission_time = 0.0 * u.s
 
     def apply_burn(self, delta_v_vec):
         magnitude = np.linalg.norm(delta_v_vec)
         if magnitude == 0:
             return
 
-        # Compute relative mission time in seconds
-        mission_time = (datetime.now() - self.mission_start).total_seconds() * u.s
+        mission_time = self.mission_time
         self.burns.append((mission_time, delta_v_vec))
         self.history.append(("burn", delta_v_vec, mission_time))
-        print(f"[Spacecraft] Logged burn at T+{mission_time:.2f}: Δv = {delta_v_vec}")
+        # print("[DEBUG] Spacecraft burn2 instance ID:", id(self))
+        # print(f"[Spacecraft] Logged burn at T+{mission_time:.2f}: Δv = {delta_v_vec}")
+       
 
     def propagate(self, mission_time_seconds):
         mission_time = mission_time_seconds * u.s
-        print(f"\n[Spacecraft] Propagating to T+{mission_time:.2f}")
+        # print(f"\n[Spacecraft] Propagating to T+{mission_time:.2f}")
 
         # Reset to initial orbit before reapplying burns
         self.orbit = self.initial_orbit
 
-        if not self.burns:
-            print("[Spacecraft] No burns recorded.")
-        else:
+        print(f"self.burns: {self.burns}")
+        if self.burns:
             print(f"[Spacecraft] {len(self.burns)} burn(s) on record:")
             for i, (burn_time, delta_v_vec) in enumerate(self.burns):
                 print(f"  Burn {i}: T+{burn_time:.2f}, Δv = {delta_v_vec}")
@@ -59,9 +59,11 @@ class Spacecraft:
         self.position = self.orbit.r
         self.velocity = self.orbit.v
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
+        # print("[DEBUG] Spacecraft instance ID:", id(self))
 
-        print("[Spacecraft] Final position (km):", self.orbit.r.to_value(u.km))
-        print("[Spacecraft] Final velocity (km/s):", self.orbit.v.to_value(u.km / u.s))
+
+        # print("[Spacecraft] Final position (km):", self.orbit.r.to_value(u.km))
+        # print("[Spacecraft] Final velocity (km/s):", self.orbit.v.to_value(u.km / u.s))
 
 
     def get_telemetry(self, include_path=False):

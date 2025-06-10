@@ -12,8 +12,11 @@ from astropy import units as u
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from sim.orbits import orb0
-from sim.spacecraft.spacecraft import Spacecraft
+from sim.spacecraft.spacecraft_controller import spacecraft
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)  # or logging.CRITICAL to suppress even more
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
@@ -21,14 +24,13 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 HOST = "127.0.0.1"
 PORT = 65432
 
-spacecraft = Spacecraft(orb0)
 telemetry_log = []
 
 @app.route("/propagate")
 def propagate():
     try:
         t = float(request.args.get("missionTime", 0))
-        print(f"[Flask] Received missionTime = {t}")
+        # print(f"[Flask] Received missionTime = {t}")
         spacecraft.propagate(t)  # t is mission time in seconds
         telemetry = spacecraft.get_telemetry()
         return jsonify(telemetry)
@@ -67,6 +69,7 @@ def serial_reader():
             print("[Serial Error]", e)
 
 def handle_connection(conn, addr, writer, csvfile):
+    global spacecraft
     with conn:
         print(f"[Ground Station] Connected by {addr}")
         while True:
@@ -137,4 +140,4 @@ if __name__ == "__main__":
         )
         socket_thread.start()
 
-        app.run(host="0.0.0.0", port=5000, debug=True)
+        app.run(host="0.0.0.0", port=5000, debug=False)
