@@ -68,27 +68,36 @@ export default function OrbitDisplay({ missionTime, timeScale }) {
   const [trail, setTrail] = useState([])
 
   const missionTimeRef = useRef(missionTime)
+
   useEffect(() => {
     missionTimeRef.current = missionTime
   }, [missionTime])
 
   useEffect(() => {
+    if (missionTime === 0) {
+      setTrail([]);
+      setPosition(null);
+    }
+  }, [missionTime]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      const t = missionTimeRef.current
+      const t = missionTimeRef.current;
+
       fetch('http://localhost:5000/propagate?missionTime=' + t)
         .then(res => res.json())
         .then(data => {
           if (data.position) {
-            const pos = [...data.position]
-            setPosition(pos)
-            setTrail(prev => [...prev, pos])
+            const pos = [...data.position];
+            setPosition(pos);
+            setTrail(prev => [...prev, pos]);
           }
         })
-        .catch(err => console.error('[OrbitDisplay] Fetch error:', err))
-    }, 1000 / 24)
+        .catch(err => console.error('[OrbitDisplay] Fetch error:', err));
+    }, 1000 / 24);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[400px] overflow-hidden">

@@ -18,6 +18,22 @@ function App() {
   const [timeScale, setTimeScale] = useState(1);
   const lastUpdateRef = useRef(Date.now());
 
+  const handleReset = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/reset", {
+        method: "POST"
+      });
+      const result = await response.json();
+      console.log("[App] Reset result:", result);
+
+      // Reset frontend time
+      setMissionTime(0);
+      lastUpdateRef.current = Date.now();  // <== IMPORTANT
+    } catch (err) {
+      console.error("[App] Reset failed:", err);
+    }
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
@@ -73,7 +89,7 @@ function App() {
         {/* Left column */}
         <div className="col-span-1 space-y-4">
           <TelemetryPanel telemetry={telemetry} />
-          <ControlPanel missionTime={missionTime} />
+          <ControlPanel missionTime={missionTime} setMissionTime={setMissionTime} onReset={handleReset} />
         </div>
 
         {/* Center visualization */}

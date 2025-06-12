@@ -120,7 +120,7 @@ def handle_connection(conn, addr, writer, csvfile):
                         print(f"[Set Orbit Error] {e}")
                         response = {"error": str(e)}
                         conn.sendall(json.dumps(response).encode())
-                        
+
                 else:
                     telemetry = json.loads(decoded)
                     telemetry["missionTime"] = spacecraft.mission_time.to_value(u.s)
@@ -143,6 +143,19 @@ def socket_server(writer, csvfile):
             thread = threading.Thread(target=handle_connection, args=(conn, addr, writer, csvfile))
             thread.start()
 
+@app.route("/current_time")
+def current_time():
+    return jsonify({"missionTime": spacecraft.mission_time.to_value(u.s)})
+
+@app.route("/reset", methods=["POST"])
+def reset_mission():
+    try:
+        spacecraft.reset()
+        return jsonify({"status": "Mission reset successful"}), 200
+    except Exception as e:
+        print("[Reset Mission Error]", e)
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     # Uncomment to enable hardware serial telemetry
     # serial_thread = threading.Thread(target=serial_reader, daemon=True)
@@ -162,6 +175,5 @@ if __name__ == "__main__":
 
         app.run(host="0.0.0.0", port=5000, debug=False)
 
-@app.route("/current_time")
-def current_time():
-    return jsonify({"missionTime": spacecraft.mission_time.to_value(u.s)})
+
+

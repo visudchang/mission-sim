@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function ControlPanel({ missionTime }) {
+export default function ControlPanel({ missionTime, setMissionTime, onReset }) {
   const [dvX, setDvX] = useState(0.1);
   const [dvY, setDvY] = useState(0);
   const [dvZ, setDvZ] = useState(0);
-  const [rp, setRp] = useState(6678); // default ~300 km above Earth
-  const [ra, setRa] = useState(6678); // circular default
-  const [inclination, setInclination] = useState(28.5); // default for Kennedy Space Center
+  const [rp, setRp] = useState(6678);
+  const [ra, setRa] = useState(6678);
+  const [inclination, setInclination] = useState(28.5);
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -55,40 +55,19 @@ export default function ControlPanel({ missionTime }) {
 
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="block text-gray-400 mb-1" htmlFor="dvX">
-            Δv X (km/s)
-          </label>
-          <input
-            id="dvX"
-            type="number"
-            value={dvX}
-            onChange={(e) => setDvX(parseFloat(e.target.value))}
-            className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-          />
+          <label className="block text-gray-400 mb-1" htmlFor="dvX">Δv X (km/s)</label>
+          <input id="dvX" type="number" value={dvX} onChange={(e) => setDvX(parseFloat(e.target.value))}
+            className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm" />
         </div>
         <div>
-          <label className="block text-gray-400 mb-1" htmlFor="dvY">
-            Δv Y (km/s)
-          </label>
-          <input
-            id="dvY"
-            type="number"
-            value={dvY}
-            onChange={(e) => setDvY(parseFloat(e.target.value))}
-            className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-          />
+          <label className="block text-gray-400 mb-1" htmlFor="dvY">Δv Y (km/s)</label>
+          <input id="dvY" type="number" value={dvY} onChange={(e) => setDvY(parseFloat(e.target.value))}
+            className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm" />
         </div>
         <div>
-          <label className="block text-gray-400 mb-1" htmlFor="dvZ">
-            Δv Z (km/s)
-          </label>
-          <input
-            id="dvZ"
-            type="number"
-            value={dvZ}
-            onChange={(e) => setDvZ(parseFloat(e.target.value))}
-            className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-          />
+          <label className="block text-gray-400 mb-1" htmlFor="dvZ">Δv Z (km/s)</label>
+          <input id="dvZ" type="number" value={dvZ} onChange={(e) => setDvZ(parseFloat(e.target.value))}
+            className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm" />
         </div>
       </div>
 
@@ -96,58 +75,34 @@ export default function ControlPanel({ missionTime }) {
         <h3 className="text-gray-300 font-medium mt-2">Set Target Orbit</h3>
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="block text-gray-400 mb-1" htmlFor="rp">
-              Periapsis Radius (km)
-            </label>
-            <input
-              id="rp"
-              type="number"
-              value={rp}
-              onChange={(e) => setRp(parseFloat(e.target.value))}
-              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm"
-            />
+            <label className="block text-gray-400 mb-1" htmlFor="rp">Periapsis Radius (km)</label>
+            <input id="rp" type="number" value={rp} onChange={(e) => setRp(parseFloat(e.target.value))}
+              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm" />
           </div>
           <div>
-            <label className="block text-gray-400 mb-1" htmlFor="ra">
-              Apoapsis Radius (km)
-            </label>
-            <input
-              id="ra"
-              type="number"
-              value={ra}
-              onChange={(e) => setRa(parseFloat(e.target.value))}
-              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm"
-            />
+            <label className="block text-gray-400 mb-1" htmlFor="ra">Apoapsis Radius (km)</label>
+            <input id="ra" type="number" value={ra} onChange={(e) => setRa(parseFloat(e.target.value))}
+              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm" />
           </div>
           <div>
-            <label className="block text-gray-400 mb-1" htmlFor="inclination">
-              Inclination (°)
-            </label>
-            <input
-              id="inclination"
-              type="number"
-              value={inclination}
-              onChange={(e) => setInclination(parseFloat(e.target.value))}
-              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm"
-            />
+            <label className="block text-gray-400 mb-1" htmlFor="inclination">Inclination (°)</label>
+            <input id="inclination" type="number" value={inclination} onChange={(e) => setInclination(parseFloat(e.target.value))}
+              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm" />
           </div>
         </div>
       </div>
 
       <div className="flex flex-col space-y-1 mt-3">
-        <button
-          onClick={handleExecuteBurn}
-          className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded"
-        >
+        <button onClick={handleExecuteBurn}
+          className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">
           Execute Burn
         </button>
-        <button
-          onClick={handleSetOrbit}
-          className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded"
-        >
+        <button onClick={handleSetOrbit}
+          className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">
           Set Orbit
         </button>
-        <button className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">
+        <button onClick={onReset}
+          className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">
           Reset Mission
         </button>
       </div>

@@ -21,12 +21,15 @@ class Spacecraft:
         self.mass = mass
         self.thrust = thrust
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
-        self.velocity = self.orbit.v
+        self.initial_position = self.initial_orbit.r.copy()
+        self.initial_velocity = self.initial_orbit.v.copy()
         self.position = self.orbit.r
+        self.velocity = self.orbit.v
         self.burns = []  # list of (mission_time, delta_v_vec)
         self.burn_queue = []
         self.history = []  # list of (event_type, value, mission_time)
         self.orbit_path = get_orbit_path_km(self.orbit)
+        self.initial_orbit_path = self.orbit_path.copy()
         self.epoch = Time("2025-01-01T00:00:00", format="isot")
         self.mission_time = 0.0 * u.s
 
@@ -132,3 +135,15 @@ class Spacecraft:
         
         self.queue_burn(dv_vec2, mission_time_seconds=burn2_time)
         print(f"[Set Orbit] Queued burn 2 at apoapsis (T+{burn2_time - self.mission_time.to_value(u.s):.1f}s): Δv = {dv_vec2}")
+
+    def reset(self):
+        print("[Spacecraft] Resetting mission state...")
+
+        self.orbit = Orbit.from_vectors(Earth, self.initial_position, self.initial_velocity, epoch=self.epoch)
+        self.position = self.orbit.r
+        self.velocity = self.orbit.v
+        self.mission_time = 0 * u.s
+        self.history = []
+        self.burns = []
+        self.burn_queue = []
+        self.orbit_path = []
