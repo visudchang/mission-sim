@@ -1,10 +1,10 @@
-export default function FlightDataPanel() {
+export default function FlightDataPanel({ velocity }) {
   const data = {
     pitch: '-2.3°',
     yaw: '14.1°',
     roll: '1.5°',
-    velocity: '7.62 km/s',
-    acceleration: '0.002 m/s²',
+    velocity: `${velocity.toFixed(2)} km/s`,
+    orbital_energy: '-281 MJ',
   }
 
   return (
@@ -29,8 +29,8 @@ export default function FlightDataPanel() {
           <span className="text-white">{data.velocity}</span>
         </div>
         <div className="flex justify-between">
-          <span>Acceleration:</span>
-          <span className="text-white">{data.acceleration}</span>
+          <span>Orbital Energy:</span>
+          <span className="text-white">{data.orbital_energy}</span>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ import "tailwindcss";
 import { useEffect, useState, useRef } from 'react';
 
 function App() {
-  const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0 });
+  const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0, VEL: 0 });
   const [logEntries, setLogEntries] = useState([]);
   const [missionTime, setMissionTime] = useState(0);
   const [timeScale, setTimeScale] = useState(1);
@@ -64,11 +64,12 @@ function App() {
         setTelemetry({
           BAT: data.BAT,
           TEMP: data.TEMP,
-          ALT: data.ALT
+          ALT: data.ALT,
+          VEL: data.VEL
         });
 
         setLogEntries(prev => [
-          `[BAT: ${data.BAT}% | TEMP: ${data.TEMP}°C | ALT: ${data.ALT}km]`,
+          `[BAT: ${data.BAT}% | TEMP: ${data.TEMP}°C | ALT: ${data.ALT}km | VEL: ${(data.VEL ?? 0).toFixed(2)} km/s]`,
           ...prev
         ].slice(0, 10));
       } catch (err) {
@@ -107,7 +108,7 @@ function App() {
       {/* Bottom row: Time Controls + Graphs */}
       <div className="grid grid-cols-12 gap-4 pt-4">
         <div className="col-span-3 space-y-2 flex flex-col justify-between">
-          <FlightDataPanel />
+          <FlightDataPanel velocity={telemetry.VEL || 0} />
           <TimeControls missionTime={missionTime} setMissionTime={setMissionTime} setTimeScale={setTimeScale} />
         </div>
         <div className="col-span-9 grid grid-cols-2 gap-4">
