@@ -9,7 +9,7 @@ from poliastro.bodies import Earth
 from sim.visualization.generate_orbit_points import get_orbit_path_km
 from sim.maneuvers.hohmann import hohmann_transfer_dvs
 from sim.maneuvers.inclination_change import compute_inclination_change_dv_general
-from sim.maneuvers.burns import periapsis_adjustment_dv
+from sim.maneuvers.burns import periapsis_adjustment_dv, time_to_periapsis
 from astropy.time import Time
 import matplotlib
 matplotlib.use("Agg")
@@ -27,6 +27,7 @@ class Spacecraft:
         self.burn_queue = []
         self.history = []  # list of (event_type, value, mission_time)
         self.orbit_path = get_orbit_path_km(self.orbit)
+        self.epoch = Time("2025-01-01T00:00:00", format="isot")
         self.mission_time = 0.0 * u.s
 
     def apply_burn(self, delta_v_vec, mission_time_seconds=None):
@@ -63,7 +64,7 @@ class Spacecraft:
             print(f"[Spacecraft] Already at T+{self.mission_time:.2f}")
             return
 
-        print(f"[Spacecraft] Advancing by {dt:.2f}")
+        # print(f"[Spacecraft] Advancing by {dt:.2f}")
         self.orbit = self.orbit.propagate(dt)
         self.position = self.orbit.r
         self.velocity = self.orbit.v
@@ -89,9 +90,9 @@ class Spacecraft:
 
     def plan_orbit_transfer(self, periapsis_radius, apoapsis_radius, inclination):
         mu = 398600.4418
-        orb = Orbit.from_vectors(Earth, self.position, self.velocity, epoch=Time(self.mission_time, format="sec"))
+        orb = Orbit.from_vectors(Earth, self.position, self.velocity, epoch=self.epoch + self.mission_time.to(u.s))
 
-        t_periapsis = orb.time_to_periapsis.to_value(u.s)
+        t_periapsis = time_to_periapsis(orb).to_value(u.s)
         burn1_time = self.mission_time.to_value(u.s) + t_periapsis
 
         r1 = orb.r_p.to_value(u.km) #???
@@ -113,21 +114,21 @@ class Spacecraft:
         rp_target = periapsis_radius.to_value(u.km)
         dv_periapsis = periapsis_adjustment_dv(rp_current=r1, rp_target=rp_target, ra_fixed=r2, mu=mu)
         dv_vec_periapsis = unit_v * dv_periapsis.to_value(u.km / u.s)
-
+        
         # Inclination change at apoapsis
         v_after_burn = v_vec + dv_vec1 + dv_vec_periapsis
         r_vec = self.position.to_value(u.km)
         h_vec = np.cross(r_vec, v_after_burn)
         current_inc = np.arccos(h_vec[2] / np.linalg.norm(h_vec)) * 180 / np.pi
-
+        
         dv_incl = compute_inclination_change_dv_general(
             r_vec=r_vec,
             v_vec=v_after_burn,
             current_inc_deg=current_inc,
             target_inc_deg=inclination.to_value(u.deg)
         )
-
-        dv_vec2 = dv_vec_periapsis + dv_incl
-
+        
+        dv_vec2 = dv_vec_periapsis * u.km / u.s + dv_incl
+        
         self.queue_burn(dv_vec2, mission_time_seconds=burn2_time)
         print(f"[Set Orbit] Queued burn 2 at apoapsis (T+{burn2_time - self.mission_time.to_value(u.s):.1f}s): Δv = {dv_vec2}")

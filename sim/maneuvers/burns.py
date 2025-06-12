@@ -5,6 +5,40 @@ from sim.common_imports import *
 
 g0 = 9.80665
 
+def periapsis_adjustment_dv(rp_current, rp_target, ra_fixed, mu=398600.4418):
+    a_current = (rp_current + ra_fixed) / 2
+    a_target = (rp_target + ra_fixed) / 2
+    v_current = np.sqrt(mu * (2/ra_fixed - 1/a_current))
+    v_target = np.sqrt(mu * (2/ra_fixed - 1/a_target))
+    return (v_target - v_current) * u.km / u.s
+
+def time_to_periapsis(orbit):
+    # Extract orbital parameters
+    ecc = orbit.ecc.value
+    a = orbit.a.to(u.km).value
+    nu = orbit.nu.to(u.rad).value
+    mu = orbit.attractor.k.to(u.km**3 / u.s**2).value
+
+    # Step 1: Compute eccentric anomaly E from true anomaly nu
+    cos_E = (ecc + np.cos(nu)) / (1 + ecc * np.cos(nu))
+    E = np.arccos(np.clip(cos_E, -1.0, 1.0))
+    if nu > np.pi:
+        E = 2 * np.pi - E
+
+    # Step 2: Compute mean anomaly M
+    M = E - ecc * np.sin(E)
+
+    # Step 3: Compute mean motion n
+    n = np.sqrt(mu / a**3)  # radians per second
+
+    # Step 4: Time to periapsis
+    period = 2 * np.pi / n
+    time_since_periapsis = M / n
+    time_until_periapsis = period - time_since_periapsis
+
+    return time_until_periapsis * u.s
+
+
 def compute_delta_v(isp, m0, mf):
     dv = isp * g0 * np.log(m0 / mf)
     return dv
@@ -68,26 +102,3 @@ def perform_burn(orbit, thrust, isp, duration, m0):
     burn = Maneuver.impulse([0, dv, 0]  * u.m / u.s)
     new_orbit = orbit.apply_maneuver(burn)
     return new_orbit, mf
-
-# To test perform_burn
-# Initial orbit
-initial_orbit = Orbit.circular(Earth, alt=500 * u.km)
-m0 = 500  # kg
-
-# Create plotter
-fig, ax = plt.subplots(figsize=(8, 8))
-plotter = StaticOrbitPlotter(ax)
-plotter.plot(initial_orbit, label="Initial")
-
-# First burn
-orbit1, m1 = perform_burn(initial_orbit, thrust=5000, isp=300, duration=60, m0=m0)
-plotter.plot(orbit1, label="After Burn 1")
-
-# Second burn
-orbit2, m2 = perform_burn(orbit1, thrust=4000, isp=310, duration=40, m0=m1)
-plotter.plot(orbit2, label="After Burn 2")
-
-# Finalize plot
-plt.legend()
-plt.title("Chained Burns: Orbit Evolution")
-plt.show()
