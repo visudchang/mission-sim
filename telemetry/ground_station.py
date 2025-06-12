@@ -103,6 +103,24 @@ def handle_connection(conn, addr, writer, csvfile):
                     conn.sendall(json.dumps(telemetry).encode())
                     print("[Ground Station] Sent updated orbitPath")
 
+                elif decoded.startswith("SET_ORBIT:"):
+                    try:
+                        parts = decoded[10:].split(",")
+                        rp = float(parts[0]) * u.km
+                        ra = float(parts[1]) * u.km
+                        inc = float(parts[2]) * u.deg
+
+                        spacecraft.plan_orbit_transfer(periapsis_radius=rp, apoapsis_radius=ra, inclination=inc)
+                        print(f"[Set Orbit] Requested orbit: rp={rp}, ra={ra}, i={inc}")
+
+                        response = {"status": "Orbit transfer planned"}
+                        conn.sendall(json.dumps(response).encode())
+
+                    except Exception as e:
+                        print(f"[Set Orbit Error] {e}")
+                        response = {"error": str(e)}
+                        conn.sendall(json.dumps(response).encode())
+                        
                 else:
                     telemetry = json.loads(decoded)
                     telemetry["missionTime"] = spacecraft.mission_time.to_value(u.s)

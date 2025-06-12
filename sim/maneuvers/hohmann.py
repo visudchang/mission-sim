@@ -8,6 +8,16 @@ def hohmann_transfer_dv(orb_i, new_radius):
     hoh = Maneuver.hohmann(orb_i, new_radius)
     return hoh.get_total_cost()
 
+def hohmann_transfer_dvs(r1, r2, mu=398600.4418):
+    a_transfer = (r1 + r2) / 2
+    v1 = np.sqrt(mu / r1)
+    v2 = np.sqrt(mu / r2)
+    v_periapsis = np.sqrt(mu * (2/r1 - 1/a_transfer))
+    dv1 = v_periapsis - v1
+    v_apoapsis = np.sqrt(mu * (2/r2 - 1/a_transfer))
+    dv2 = v2 - v_apoapsis
+    return dv1 * u.km / u.s, dv2 * u.km / u.s
+
 def hohmann_plot(orb_i, new_radius):
     hoh = Maneuver.hohmann(orb_i, new_radius)
     print(f"Total delta v: {hoh.get_total_cost()}")

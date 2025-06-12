@@ -22,6 +22,40 @@ def compute_inclination_change_dv(orbit_i, orbit_f):
     dv_vec = v_rotated - v_vec
     return dv_vec * (u.km / u.s)
 
+def compute_inclination_change_dv_general(r_vec, v_vec, current_inc_deg, target_inc_deg):
+    """
+    Computes the delta-v vector required to change orbital inclination.
+
+    Parameters:
+    - r_vec: position vector (3D) in km
+    - v_vec: velocity vector (3D) in km/s
+    - current_inc_deg: current inclination in degrees
+    - target_inc_deg: desired inclination in degrees
+
+    Returns:
+    - dv_vec: delta-v vector in km/s
+    """
+    delta_i = np.deg2rad(abs(target_inc_deg - current_inc_deg))
+
+    # Compute angular momentum vectors (orbit normals)
+    h = np.cross(r_vec, v_vec)  # current angular momentum vector
+    h_unit = h / np.linalg.norm(h)
+
+    # Rotation axis is perpendicular to the current and target planes
+    # If changing inclination only, rotate around node line (perpendicular to h)
+    # Construct fake target h vector by rotating current h by delta_i
+    axis = np.cross(h, [1, 0, 0])  # use x-axis as reference for simplicity
+    if np.linalg.norm(axis) < 1e-8:
+        axis = np.array([0, 1, 0])  # fallback if current orbit is polar
+    axis = axis / np.linalg.norm(axis)
+
+    # Rotate velocity vector by delta inclination
+    rot = R.from_rotvec(delta_i * axis)
+    v_rotated = rot.apply(v_vec)
+
+    dv_vec = v_rotated - v_vec
+    return dv_vec * (u.km / u.s)
+
 def animate_inclination_change_orb_f(orb_i, orb_f):
     di = abs(orb_i.inc.to(u.rad).value - orb_f.inc.to(u.rad).value)
     dv = 2 * orb_i.v.to(u.km / u.s).value * np.sin(di / 2)

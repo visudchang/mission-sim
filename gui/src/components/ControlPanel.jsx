@@ -4,6 +4,9 @@ export default function ControlPanel({ missionTime }) {
   const [dvX, setDvX] = useState(0.1);
   const [dvY, setDvY] = useState(0);
   const [dvZ, setDvZ] = useState(0);
+  const [rp, setRp] = useState(6678); // default ~300 km above Earth
+  const [ra, setRa] = useState(6678); // circular default
+  const [inclination, setInclination] = useState(28.5); // default for Kennedy Space Center
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -36,8 +39,18 @@ export default function ControlPanel({ missionTime }) {
     }
   };
 
+  const handleSetOrbit = () => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      const message = `SET_ORBIT:${rp},${ra},${inclination}`;
+      socketRef.current.send(message);
+      console.log('[ControlPanel] Sent:', message);
+    } else {
+      console.warn('[ControlPanel] WebSocket not ready');
+    }
+  };
+
   return (
-    <div className="bg-zinc-900 p-3 rounded-lg shadow-lg border border-zinc-700 text-sm space-y-3">
+    <div className="bg-zinc-900 p-3 rounded-lg shadow-lg border border-zinc-700 text-sm space-y-4">
       <h2 className="text-md font-semibold text-blue-300">Control Panel</h2>
 
       <div className="grid grid-cols-3 gap-2">
@@ -79,18 +92,63 @@ export default function ControlPanel({ missionTime }) {
         </div>
       </div>
 
-      <div className="flex flex-col space-y-1 mt-2">
+      <div className="space-y-2">
+        <h3 className="text-gray-300 font-medium mt-2">Set Target Orbit</h3>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="block text-gray-400 mb-1" htmlFor="rp">
+              Periapsis Radius (km)
+            </label>
+            <input
+              id="rp"
+              type="number"
+              value={rp}
+              onChange={(e) => setRp(parseFloat(e.target.value))}
+              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 mb-1" htmlFor="ra">
+              Apoapsis Radius (km)
+            </label>
+            <input
+              id="ra"
+              type="number"
+              value={ra}
+              onChange={(e) => setRa(parseFloat(e.target.value))}
+              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 mb-1" htmlFor="inclination">
+              Inclination (°)
+            </label>
+            <input
+              id="inclination"
+              type="number"
+              value={inclination}
+              onChange={(e) => setInclination(parseFloat(e.target.value))}
+              className="w-full px-2 py-1 bg-zinc-800 text-white border border-zinc-700 rounded text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col space-y-1 mt-3">
         <button
           onClick={handleExecuteBurn}
           className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded"
         >
           Execute Burn
         </button>
-        <button className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">
+        <button
+          onClick={handleSetOrbit}
+          className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded"
+        >
           Set Orbit
         </button>
         <button className="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded">
-          Stop Thrusters
+          Reset Mission
         </button>
       </div>
     </div>
