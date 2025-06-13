@@ -12,7 +12,7 @@ import "tailwindcss";
 import { useEffect, useState, useRef } from 'react';
 
 function App() {
-  const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0, VEL: 0, orbital_energy: 0 });
+  const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0, VEL: 0, orbital_energy: 0, time: 0 });
   const [logEntries, setLogEntries] = useState([]);
   const [missionTime, setMissionTime] = useState(0);
   const [timeScale, setTimeScale] = useState(1);
@@ -29,6 +29,7 @@ function App() {
 
       // Reset frontend time
       setMissionTime(0);
+      setVelocityHistory([]);
       lastUpdateRef.current = Date.now();  // <== IMPORTANT
     } catch (err) {
       console.error("[App] Reset failed:", err);
@@ -52,7 +53,8 @@ function App() {
               TEMP: data.TEMP,
               ALT: data.ALT,
               VEL: data.VEL,
-              orbital_energy: data.orbital_energy
+              orbital_energy: data.orbital_energy,
+              time: data.missionTime
             });
 
             setVelocityHistory(prev => {

@@ -14,6 +14,13 @@ export default function DynamicsGraph({ velocityHistory, missionTime }) {
             type="number"
             domain={[Math.max(0, missionTime - 30000), missionTime]}
             minTickGap={10}    
+            tickFormatter={(t) => {
+              if (missionTime < 1000) {
+                return `T+${t.toFixed(0)}s`;
+              } else {
+                return `T+${Math.floor(t / 100) * 100}s`;
+              }
+            }}
           />
           <YAxis
             stroke="#aaa"
@@ -27,11 +34,11 @@ export default function DynamicsGraph({ velocityHistory, missionTime }) {
             labelFormatter={(label) => `T+${Math.floor(label)}s`}
           />
           <Line
-            type="linear"
+            type="monotone"
             dataKey="velocity"
-            stroke="#ff0000"
+            stroke="#38bdf8"
             strokeWidth={2}
-            dot={true}
+            dot={false}
             isAnimationActive={false}
           />
         </LineChart>

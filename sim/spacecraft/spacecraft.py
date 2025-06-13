@@ -88,7 +88,8 @@ class Spacecraft:
             "timestamp": datetime.now().isoformat(),
             "position": self.position.to_value(u.km).tolist(),
             "velocity": self.velocity.to_value(u.km / u.s).tolist(),
-            "orbital_energy": orbital_energy / 1e6
+            "orbital_energy": orbital_energy / 1e6,
+            "missionTime": self.mission_time.to_value(u.s)
         }
         if include_path:
             telemetry["orbitPath"] = self.get_orbit_path()
