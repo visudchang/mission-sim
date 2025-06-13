@@ -11,6 +11,7 @@ from sim.maneuvers.hohmann import hohmann_transfer_dvs
 from sim.maneuvers.inclination_change import compute_inclination_change_dv_general
 from sim.maneuvers.burns import periapsis_adjustment_dv, time_to_periapsis
 from astropy.time import Time
+from tests.test_orbital_energy_cpp import compute_orbital_energy
 import matplotlib
 matplotlib.use("Agg")
 
@@ -76,6 +77,10 @@ class Spacecraft:
         self.check_burn_queue()
 
     def get_telemetry(self, include_path=False):
+        r = np.linalg.norm(self.position.to_value(u.m))
+        v = np.linalg.norm(self.velocity.to_value(u.m / u.s))
+        orbital_energy = compute_orbital_energy(r, v)
+
         telemetry = {
             "VEL": np.linalg.norm(self.velocity).to(u.km / u.s).value,
             "ALT": (np.linalg.norm(self.position) - Earth.R).to(u.km).value,
@@ -83,6 +88,7 @@ class Spacecraft:
             "timestamp": datetime.now().isoformat(),
             "position": self.position.to_value(u.km).tolist(),
             "velocity": self.velocity.to_value(u.km / u.s).tolist(),
+            "orbital_energy": orbital_energy / 1e6
         }
         if include_path:
             telemetry["orbitPath"] = self.get_orbit_path()
@@ -98,7 +104,7 @@ class Spacecraft:
         t_periapsis = time_to_periapsis(orb).to_value(u.s)
         burn1_time = self.mission_time.to_value(u.s) + t_periapsis
 
-        r1 = orb.r_p.to_value(u.km) #???
+        r1 = orb.r_p.to_value(u.km) #??? this is where i suspect the error is
         r2 = apoapsis_radius.to_value(u.km)
         dv1, _ = hohmann_transfer_dvs(r1, r2, mu)
 

@@ -1,10 +1,13 @@
-export default function FlightDataPanel({ velocity }) {
+export default function FlightDataPanel({ velocity, orbital_energy }) {
+  const vel = velocity ?? 0;
+  const energy = orbital_energy ?? 0;
+  
   const data = {
     pitch: '-2.3°',
     yaw: '14.1°',
     roll: '1.5°',
-    velocity: `${velocity.toFixed(2)} km/s`,
-    orbital_energy: '-281 MJ',
+    velocity: `${vel.toFixed(2)} km/s`,
+    orbital_energy: `${energy.toFixed(2)} MJ/kg`,
   }
 
   return (

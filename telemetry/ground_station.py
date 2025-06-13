@@ -60,7 +60,8 @@ def serial_reader():
                 "VEL": orbital_data["VEL"],
                 "ALT": orbital_data["ALT"],
                 "ACC": orbital_data["ACC"],
-                "missionTime": orbital_data["missionTime"]
+                "missionTime": orbital_data["missionTime"],
+                "orbital_energy": orbital_data["orbital_energy"]
             }
 
             telemetry_log.append(telemetry)
