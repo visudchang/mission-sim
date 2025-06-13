@@ -54,7 +54,7 @@ def compute_inclination_change_dv_general(r_vec, v_vec, current_inc_deg, target_
     v_rotated = rot.apply(v_vec)
 
     dv_vec = v_rotated - v_vec
-    return dv_vec * (u.km / u.s)
+    return dv_vec
 
 def animate_inclination_change_orb_f(orb_i, orb_f):
     di = abs(orb_i.inc.to(u.rad).value - orb_f.inc.to(u.rad).value)

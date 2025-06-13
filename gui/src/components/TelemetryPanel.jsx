@@ -14,7 +14,7 @@ export default function TelemetryPanel({ telemetry }) {
         </div>
         <div className="flex justify-between text-gray-400">
           <span>Altitude:</span>
-          <span className="font-mono text-white">{telemetry.ALT} m</span>
+          <span className="font-mono text-white">{(telemetry.ALT ?? 0).toFixed(2)} km</span>
         </div>
       </div>
     </div>

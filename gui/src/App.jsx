@@ -17,6 +17,7 @@ function App() {
   const [missionTime, setMissionTime] = useState(0);
   const [timeScale, setTimeScale] = useState(1);
   const [velocityHistory, setVelocityHistory] = useState([]);
+  const [burnQueue, setBurnQueue] = useState([]);
   const lastUpdateRef = useRef(Date.now());
 
   const handleReset = async () => {
@@ -67,10 +68,6 @@ function App() {
               ];
               return next.filter(d => d.time >= Math.max(0, data.missionTime - 30000));
             });
-            console.log("Velocity entry sample:", {
-              time: data.missionTime,
-              velocity: data.VEL
-            });
           })
           .catch(err => console.error("[Telemetry Fetch Error]", err));
         return updated;
@@ -116,6 +113,27 @@ function App() {
     return () => socket.close();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch("http://localhost:5000/burn_queue")
+        .then(res => res.text())
+        .then(text => {
+          console.log("[Raw Burn Queue Response Text]", text);
+          try {
+            const data = JSON.parse(text);
+            setBurnQueue(data);
+          } catch (e) {
+            console.error("Failed to parse JSON from /burn_queue:", e, "\nText was:\n", text);
+          }
+        })
+        .catch(err => {
+          console.error("[Burn Queue Fetch Error]", err);
+        });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen w-screen bg-zinc-900 text-white p-4 space-y-4">
       <Header />
@@ -133,7 +151,7 @@ function App() {
 
         {/* Right column */}
         <div className="col-span-1 space-y-4">
-          <BurnQueue />
+          <BurnQueue burnQueue={burnQueue} />
           <MissionLog logs={logEntries} />
         </div>
       </div>

@@ -29,6 +29,7 @@ class Spacecraft:
         self.burns = []  # list of (mission_time, delta_v_vec)
         self.burn_queue = []
         self.history = []  # list of (event_type, value, mission_time)
+        self.planned_burns = []
         self.orbit_path = get_orbit_path_km(self.orbit)
         self.initial_orbit_path = self.orbit_path.copy()
         self.epoch = Time("2025-01-01T00:00:00", format="isot")
@@ -65,7 +66,7 @@ class Spacecraft:
         # Always propagate from current state
         dt = mission_time - self.mission_time
         if dt <= 0 * u.s:
-            print(f"[Spacecraft] Already at T+{self.mission_time:.2f}")
+            # print(f"[Spacecraft] Already at T+{self.mission_time:.2f}")
             return
 
         # print(f"[Spacecraft] Advancing by {dt:.2f}")
@@ -75,6 +76,10 @@ class Spacecraft:
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
         self.mission_time = mission_time
         self.check_burn_queue()
+        print("Before:", self.burn_queue)
+        self.burn_queue = [burn for burn in self.burn_queue if burn[0] > self.mission_time.to_value(u.s) + 0.01]
+        print("After", self.burn_queue)
+
 
     def get_telemetry(self, include_path=False):
         r = np.linalg.norm(self.position.to_value(u.m))
@@ -138,10 +143,19 @@ class Spacecraft:
             target_inc_deg=inclination.to_value(u.deg)
         )
         
-        dv_vec2 = dv_vec_periapsis * u.km / u.s + dv_incl
-        
-        self.queue_burn(dv_vec2, mission_time_seconds=burn2_time)
+        dv_vec2 = dv_vec_periapsis + dv_incl
+
+        self.queue_burn(dv_vec2 * u.km / u.s, mission_time_seconds=burn2_time)
         print(f"[Set Orbit] Queued burn 2 at apoapsis (T+{burn2_time - self.mission_time.to_value(u.s):.1f}s): Δv = {dv_vec2}")
+
+        self.planned_burns = [
+            {"delta_v": dv_vec1, "time": burn1_time},
+            {"delta_v": dv_vec2, "time": burn2_time}
+        ]
+        print("Burns queued")
+
+    def get_planned_burns(self):
+        return self.planned_burns
 
     def reset(self):
         print("[Spacecraft] Resetting mission state...")
@@ -153,4 +167,5 @@ class Spacecraft:
         self.history = []
         self.burns = []
         self.burn_queue = []
+        self.planned_burns = []
         self.orbit_path = []

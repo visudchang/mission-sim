@@ -25,6 +25,7 @@ HOST = "127.0.0.1"
 PORT = 65432
 
 telemetry_log = []
+burn_queue = []
 
 @app.route("/propagate")
 def propagate():
@@ -112,6 +113,16 @@ def handle_connection(conn, addr, writer, csvfile):
                         inc = float(parts[2]) * u.deg
 
                         spacecraft.plan_orbit_transfer(periapsis_radius=rp, apoapsis_radius=ra, inclination=inc)
+                        burn_queue.clear()
+
+                        for burn in spacecraft.get_planned_burns():
+                            print("[Burn Planned]", burn)
+                            burn_queue.append({
+                                "tPlus": f"T+{int(burn['time']//60):02}:{int(burn['time']%60):02}",
+                                "vector": [round(float(v), 2) for v in burn["delta_v"]],
+                                "magnitude": f"{np.linalg.norm(burn['delta_v']):.1f} km/s"
+                            })
+
                         print(f"[Set Orbit] Requested orbit: rp={rp}, ra={ra}, i={inc}")
 
                         response = {"status": "Orbit transfer planned"}
@@ -148,9 +159,16 @@ def socket_server(writer, csvfile):
 def current_time():
     return jsonify({"missionTime": spacecraft.mission_time.to_value(u.s)})
 
+@app.route("/burn_queue")
+def get_burn_queue():
+    print("burn_queue: ", burn_queue)
+    print("spacecraft.burn_queue: ", spacecraft.burn_queue)
+    return jsonify(burn_queue)
+
 @app.route("/reset", methods=["POST"])
 def reset_mission():
     try:
+        burn_queue.clear()
         spacecraft.reset()
         return jsonify({"status": "Mission reset successful"}), 200
     except Exception as e:

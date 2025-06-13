@@ -49,7 +49,7 @@ function Satellite({ position }) {
       const rounded = scaled.map(x => x.toFixed(5))
       const same = lastPos.current?.every((val, i) => val === rounded[i])
       if (!same) {
-        console.log("[Satellite] Updated position to:", rounded)
+        // console.log("[Satellite] Updated position to:", rounded)
         lastPos.current = rounded
       }
     }
