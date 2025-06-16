@@ -193,7 +193,7 @@ class Spacecraft:
         print("Burns queued")
         a = (apoapsis_radius + periapsis_radius) / 2
         e = (apoapsis_radius - periapsis_radius) / (apoapsis_radius + periapsis_radius)
-        self.log_event(f"Set Orbit: Semi-major axis: {a} | Eccentricity: {e} | Inclination: {inclination}")
+        self.log_event(f"Set Orbit: Semi-major axis: {a} | Eccentricity: {e:.4f} | Inclination: {inclination}")
 
     def get_planned_burns(self):
         return self.planned_burns

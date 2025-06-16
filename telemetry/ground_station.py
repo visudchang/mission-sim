@@ -88,7 +88,7 @@ def handle_connection(conn, addr, writer, csvfile):
                     telemetry["logs"] = spacecraft.mission_log[:15]
                     response = json.dumps(telemetry).encode()
                     conn.sendall(response)
-                    print(f"[Ground Station] Sent latest telemetry: {telemetry}")
+                    # print(f"[Ground Station] Sent latest telemetry: {telemetry}")
 
                     csv_safe = {k: telemetry.get(k, "") for k in writer.fieldnames}
                     writer.writerow(csv_safe)
@@ -162,8 +162,8 @@ def current_time():
 
 @app.route("/burn_queue")
 def get_burn_queue():
-    print("burn_queue: ", burn_queue)
-    print("spacecraft.burn_queue: ", spacecraft.burn_queue)
+    # print("burn_queue: ", burn_queue)
+    # print("spacecraft.burn_queue: ", spacecraft.burn_queue)
     return jsonify(burn_queue)
 
 @app.route("/reset", methods=["POST"])

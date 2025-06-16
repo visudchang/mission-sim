@@ -117,7 +117,7 @@ function App() {
       fetch("http://localhost:5000/burn_queue")
         .then(res => res.text())
         .then(text => {
-          console.log("[Raw Burn Queue Response Text]", text);
+          // console.log("[Raw Burn Queue Response Text]", text);
           try {
             const data = JSON.parse(text);
             setBurnQueue(data);
