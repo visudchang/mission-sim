@@ -85,6 +85,7 @@ def handle_connection(conn, addr, writer, csvfile):
                 if decoded == "GET_STATUS":
                     # Return latest telemetry without propagating
                     telemetry = spacecraft.get_telemetry()
+                    telemetry["logs"] = spacecraft.mission_log[:15]
                     response = json.dumps(telemetry).encode()
                     conn.sendall(response)
                     print(f"[Ground Station] Sent latest telemetry: {telemetry}")

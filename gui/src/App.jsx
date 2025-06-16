@@ -97,10 +97,9 @@ function App() {
           missionTime: data.missionTime
         });
 
-        setLogEntries(prev => [
-          `[BAT: ${data.BAT}% | TEMP: ${data.TEMP}°C | ALT: ${data.ALT}km | VEL: ${(data.VEL ?? 0).toFixed(2)} km/s | Orbital Energy: ${(data.orbital_energy ?? 0).toFixed(2)} MJ/kg]`,
-          ...prev
-        ].slice(0, 10));
+        if (data.logs) {
+          setLogEntries(data.logs);
+        }
 
       } catch (err) {
         console.error('[Frontend] Invalid telemetry:', err);

@@ -34,6 +34,36 @@ class Spacecraft:
         self.initial_orbit_path = self.orbit_path.copy()
         self.epoch = Time("2025-01-01T00:00:00", format="isot")
         self.mission_time = 0.0 * u.s
+        self.battery = self.Battery(parent = self)
+        self.mission_log = []
+
+    class Battery:
+        def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=15.0):
+            self.parent = parent
+            self.percent = initial_percent
+            self.recharge_rate = recharge_rate_per_sec  # % per simulated second
+            self.dv_cost_per_kms = dv_cost_per_kms      # % per km/s of burn
+
+        def update(self, dt_simulated):
+            self.percent = min(100.0, self.percent + self.recharge_rate * dt_simulated)
+
+        def execute_burn(self, dv_vector_kms):
+            dv_magnitude = np.linalg.norm(dv_vector_kms)
+            drop = dv_magnitude * self.dv_cost_per_kms
+            new_percent = self.percent - drop.to_value(u.km / u.s)
+            if new_percent < 0.0:
+                return False
+            self.percent = new_percent
+            if new_percent < 20.0:
+                self.parent.log_event("Warning: Battery below 20%")
+            return True
+
+        def is_empty(self):
+            return self.percent <= 0.0
+
+        def __str__(self):
+            return f"Battery: {self.percent:.2f}%"
+
 
     def apply_burn(self, delta_v_vec, mission_time_seconds=None):
         if np.linalg.norm(delta_v_vec) == 0:
@@ -41,14 +71,21 @@ class Spacecraft:
 
         mission_time = self.mission_time if mission_time_seconds is None else mission_time_seconds * u.s
 
-        print(f"[Spacecraft] Applying immediate burn at T+{mission_time:.2f}")
-
+        if not self.battery.execute_burn(delta_v_vec):
+            print("[Spacecraft] Not enough battery available to execute burn")
+            return
+        
         self.orbit = self.orbit.apply_maneuver(Maneuver.impulse(delta_v_vec))
         self.velocity = self.orbit.v
         self.position = self.orbit.r
 
         self.burns.append((mission_time, delta_v_vec))
         self.history.append(("burn", delta_v_vec, mission_time))
+
+        print(f"[Spacecraft] Applying immediate burn at T+{mission_time:.2f}")
+        dv_mag = np.linalg.norm(delta_v_vec).to(u.km / u.s).value
+        self.log_event(f"Executed burn: Δv = {dv_mag:.1f} km/s")
+
 
     def queue_burn(self, delta_v_vec, mission_time_seconds):
         self.burn_queue.append((mission_time_seconds, delta_v_vec))
@@ -75,11 +112,11 @@ class Spacecraft:
         self.velocity = self.orbit.v
         self.acceleration = np.zeros(3) * (u.km / u.s**2)
         self.mission_time = mission_time
+        self.battery.update(dt.to_value(u.s))
         self.check_burn_queue()
-        print("Before:", self.burn_queue)
+        # print("Before:", self.burn_queue)
         self.burn_queue = [burn for burn in self.burn_queue if burn[0] > self.mission_time.to_value(u.s) + 0.01]
-        print("After", self.burn_queue)
-
+        # print("After", self.burn_queue)
 
     def get_telemetry(self, include_path=False):
         r = np.linalg.norm(self.position.to_value(u.m))
@@ -94,7 +131,8 @@ class Spacecraft:
             "position": self.position.to_value(u.km).tolist(),
             "velocity": self.velocity.to_value(u.km / u.s).tolist(),
             "orbital_energy": orbital_energy / 1e6,
-            "missionTime": self.mission_time.to_value(u.s)
+            "missionTime": self.mission_time.to_value(u.s),
+            "BAT": round(self.battery.percent, 2)
         }
         if include_path:
             telemetry["orbitPath"] = self.get_orbit_path()
@@ -153,19 +191,32 @@ class Spacecraft:
             {"delta_v": dv_vec2, "time": burn2_time}
         ]
         print("Burns queued")
+        a = (apoapsis_radius + periapsis_radius) / 2
+        e = (apoapsis_radius - periapsis_radius) / (apoapsis_radius + periapsis_radius)
+        self.log_event(f"Set Orbit: Semi-major axis: {a} | Eccentricity: {e} | Inclination: {inclination}")
 
     def get_planned_burns(self):
         return self.planned_burns
+    
+    def log_event(self, message):
+        timestamp = self.mission_time.to_value(u.s)
+        mins = int(timestamp // 60)
+        secs = int(timestamp % 60)
+        formatted_time = f"T+{mins:02}:{secs:02}"
+        self.mission_log.insert(0, f"{formatted_time} — {message}")
 
     def reset(self):
         print("[Spacecraft] Resetting mission state...")
-
-        self.orbit = Orbit.from_vectors(Earth, self.initial_position, self.initial_velocity, epoch=self.epoch)
-        self.position = self.orbit.r
-        self.velocity = self.orbit.v
-        self.mission_time = 0 * u.s
+        
+        for i in range(5):
+            self.orbit = Orbit.from_vectors(Earth, self.initial_position, self.initial_velocity, epoch=self.epoch)
+            self.position = self.orbit.r
+            self.velocity = self.orbit.v
+            self.mission_time = 0 * u.s
         self.history = []
         self.burns = []
         self.burn_queue = []
         self.planned_burns = []
         self.orbit_path = []
+        self.battery.percent = 100.0
+        self.log_event("Mission reset")
