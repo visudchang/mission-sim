@@ -13,6 +13,7 @@ from sim.maneuvers.burns import periapsis_adjustment_dv, time_to_periapsis
 from astropy.time import Time
 from tests.test_orbital_energy_cpp import compute_orbital_energy
 import matplotlib
+from poliastro.util import wrap_angle
 matplotlib.use("Agg")
 
 class Spacecraft:
@@ -38,7 +39,7 @@ class Spacecraft:
         self.mission_log = []
 
     class Battery:
-        def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=15.0):
+        def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=10.0):
             self.parent = parent
             self.percent = initial_percent
             self.recharge_rate = recharge_rate_per_sec  # % per simulated second
@@ -72,6 +73,7 @@ class Spacecraft:
         mission_time = self.mission_time if mission_time_seconds is None else mission_time_seconds * u.s
 
         if not self.battery.execute_burn(delta_v_vec):
+            self.log_event("Burn failed: Not enough battery")
             print("[Spacecraft] Not enough battery available to execute burn")
             return
         
@@ -142,58 +144,76 @@ class Spacecraft:
         return self.orbit_path
 
     def plan_orbit_transfer(self, periapsis_radius, apoapsis_radius, inclination):
-        mu = 398600.4418
+        mu = 398600.4418  # km^3/s^2
+
+        # Start with the current orbit
         orb = Orbit.from_vectors(Earth, self.position, self.velocity, epoch=self.epoch + self.mission_time.to(u.s))
 
+        # Periapsis radius (current orbit)
+        r1 = orb.r_p.to_value(u.km)
+        r2 = apoapsis_radius.to_value(u.km)
+
+        # Time to periapsis
         t_periapsis = time_to_periapsis(orb).to_value(u.s)
         burn1_time = self.mission_time.to_value(u.s) + t_periapsis
 
-        r1 = orb.r_p.to_value(u.km) #??? this is where i suspect the error is
-        r2 = apoapsis_radius.to_value(u.km)
-        dv1, _ = hohmann_transfer_dvs(r1, r2, mu)
-
-        v_vec = self.velocity.to_value(u.km / u.s)
+        # Calculate the delta-v to raise apoapsis
+        orb_at_periapsis = orb.propagate(t_periapsis * u.s)
+        v_vec = orb_at_periapsis.v.to_value(u.km / u.s)
         unit_v = v_vec / np.linalg.norm(v_vec)
+        dv1, _ = hohmann_transfer_dvs(r1, r2, mu)
         dv_vec1 = unit_v * dv1.to_value(u.km / u.s)
 
         self.queue_burn(dv_vec1 * u.km / u.s, mission_time_seconds=burn1_time)
-        print(f"[Set Orbit] Queued burn 1 at periapsis (T+{t_periapsis:.1f}s): Δv = {dv_vec1}")
+        print(f"[Set Orbit] Queued burn 1 at periapsis (T+{burn1_time:.1f}s): Δv = {dv_vec1}")
 
-        # Wait until apoapsis
-        a_transfer = (r1 + r2) / 2
-        T_half = np.pi * np.sqrt(a_transfer**3 / mu) * u.s
-        burn2_time = burn1_time + T_half.to_value(u.s)
-        
+        # Simulate orbit after burn 1
+        maneuver1 = Maneuver((t_periapsis * u.s, dv_vec1 * u.km / u.s))
+        orb1 = orb.apply_maneuver(maneuver1)
+        print("orb1: ", orb1)
+        print("orb1 period: ", orb1.period)
+
+        time_to_apoapsis = orb1.period / 2
+        burn2_time = burn1_time + time_to_apoapsis.to_value(u.s)
+
+        print(f"[Debug] time_to_apoapsis: {time_to_apoapsis}, burn2_time: {burn2_time}")
+
+        # Propagate to apoapsis to get direction for second burn
+        orb2 = orb1.propagate(time_to_apoapsis)
+        unit_v_apo = orb2.v.to_value(u.km / u.s) / np.linalg.norm(orb2.v.to_value(u.km / u.s))
+
+        # Burn 2: raise periapsis to target value
         rp_target = periapsis_radius.to_value(u.km)
         dv_periapsis = periapsis_adjustment_dv(rp_current=r1, rp_target=rp_target, ra_fixed=r2, mu=mu)
-        dv_vec_periapsis = unit_v * dv_periapsis.to_value(u.km / u.s)
-        
-        # Inclination change at apoapsis
-        v_after_burn = v_vec + dv_vec1 + dv_vec_periapsis
-        r_vec = self.position.to_value(u.km)
-        h_vec = np.cross(r_vec, v_after_burn)
+        dv_vec_periapsis = unit_v_apo * dv_periapsis.to_value(u.km / u.s)
+
+        # Compute inclination change
+        r_vec = orb2.r.to_value(u.km)
+        v_vec_total = orb2.v.to_value(u.km / u.s) + dv_vec_periapsis
+
+        h_vec = np.cross(r_vec, v_vec_total)
         current_inc = np.arccos(h_vec[2] / np.linalg.norm(h_vec)) * 180 / np.pi
-        
+
         dv_incl = compute_inclination_change_dv_general(
             r_vec=r_vec,
-            v_vec=v_after_burn,
+            v_vec=v_vec_total,
             current_inc_deg=current_inc,
             target_inc_deg=inclination.to_value(u.deg)
         )
-        
+
         dv_vec2 = dv_vec_periapsis + dv_incl
 
         self.queue_burn(dv_vec2 * u.km / u.s, mission_time_seconds=burn2_time)
-        print(f"[Set Orbit] Queued burn 2 at apoapsis (T+{burn2_time - self.mission_time.to_value(u.s):.1f}s): Δv = {dv_vec2}")
+        print(f"[Set Orbit] Queued burn 2 at apoapsis (T+{burn2_time:.1f}s): Δv = {dv_vec2}")
 
         self.planned_burns = [
             {"delta_v": dv_vec1, "time": burn1_time},
             {"delta_v": dv_vec2, "time": burn2_time}
         ]
-        print("Burns queued")
+
         a = (apoapsis_radius + periapsis_radius) / 2
         e = (apoapsis_radius - periapsis_radius) / (apoapsis_radius + periapsis_radius)
-        self.log_event(f"Set Orbit: Semi-major axis: {a} | Eccentricity: {e:.4f} | Inclination: {inclination}")
+        self.log_event(f"Set Orbit: Semi-major axis: {a:.1f} km | Eccentricity: {e:.4f} | Inclination: {inclination:.1f} deg")
 
     def get_planned_burns(self):
         return self.planned_burns

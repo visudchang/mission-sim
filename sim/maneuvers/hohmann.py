@@ -6,9 +6,19 @@ from sim.orbits import orb0, orb1
 
 def hohmann_transfer_dv(orb_i, new_radius):
     hoh = Maneuver.hohmann(orb_i, new_radius)
+    t_burn2 = hoh.impulses[1][0]
+    print(f"Time between burns: {t_burn2.to(u.min):.2f}")
     return hoh.get_total_cost()
 
 def hohmann_transfer_dvs(r1, r2, mu=398600.4418):
+    try:
+        r1 = r1.to(u.km).value
+    except:
+        r1 = r1
+    try:
+        r2 = r2.to(u.km).value
+    except:
+        r2 = r2
     a_transfer = (r1 + r2) / 2
     v1 = np.sqrt(mu / r1)
     v2 = np.sqrt(mu / r2)
@@ -16,8 +26,13 @@ def hohmann_transfer_dvs(r1, r2, mu=398600.4418):
     dv1 = v_periapsis - v1
     v_apoapsis = np.sqrt(mu * (2/r2 - 1/a_transfer))
     dv2 = v2 - v_apoapsis
+    print(dv1, dv2)
     return dv1 * u.km / u.s, dv2 * u.km / u.s
 
+# print(hohmann_transfer_dv(orb0, 15000 * u.km))
+# print(hohmann_transfer_dvs(orb0.a, 15000 * u.km))
+
+'''
 def hohmann_plot(orb_i, new_radius):
     hoh = Maneuver.hohmann(orb_i, new_radius)
     print(f"Total delta v: {hoh.get_total_cost()}")
@@ -31,7 +46,7 @@ def hohmann_plot(orb_i, new_radius):
     op.plot(orb_f, label = "Final orbit")
 
     plt.show()
-
+'''
 def animate_hohmann_transfer(orb_i, new_radius):
     hoh = Maneuver.hohmann(orb_i, new_radius)
     orbits = orb_i.apply_maneuver(hoh, intermediate = True)
@@ -118,3 +133,4 @@ def animate_hohmann_transfer(orb_i, new_radius):
     print(f"Total transfer time: {hoh.get_total_time()}")
 
     fig.show()
+
