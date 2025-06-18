@@ -6,21 +6,25 @@ import * as THREE from 'three'
 
 const EARTH_RADIUS_KM = 6371
 
-function Earth() {
+function Earth({ missionTime, timeScale }) {
   const texture = useLoader(TextureLoader, '/src/assets/earth.jpg')
   const earthRef = useRef()
 
   useFrame(() => {
-    earthRef.current.rotation.y += 0.001
+    if (earthRef.current) {
+      const rotationSpeed = 0.00007292115 // rad/sec, 360 deg / 24 hr
+      earthRef.current.rotation.y = missionTime * rotationSpeed
+    }
   })
 
   return (
-    <mesh ref={earthRef}>
+    <mesh ref={earthRef} rotation={[Math.PI / 2, 0, 0]}>
       <sphereGeometry args={[1, 64, 64]} />
-      <meshStandardMaterial map={texture} />
+      <meshStandardMaterial map={texture} side={THREE.FrontSide} />
     </mesh>
   )
 }
+
 
 function OrbitTrail({ trail }) {
   if (!trail || trail.length < 2) return null
@@ -103,13 +107,13 @@ export default function OrbitDisplay({ missionTime, timeScale }) {
     <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[400px] overflow-hidden">
       <h2 className="text-lg font-semibold text-blue-300 mb-2">Orbit Visualization</h2>
       <div className="w-full h-[360px] rounded-lg overflow-hidden">
-        <Canvas camera={{ position: [0, 0, 20], fov: 45 }}>
+        <Canvas camera={{ position: [0, 0, 20], up: [0, 0, 1], fov: 45 }}>
           <ambientLight intensity={1.0} />
           <directionalLight position={[3, 2, 1]} intensity={1.5} />
           <pointLight position={[-3, -2, -1]} intensity={1} />
 
           <Suspense fallback={null}>
-            <Earth />
+            <Earth missionTime={missionTime}/>
             <OrbitTrail trail={trail} />
             <Satellite position={position} />
           </Suspense>

@@ -18,6 +18,7 @@ function App() {
   const [timeScale, setTimeScale] = useState(1);
   const [velocityHistory, setVelocityHistory] = useState([]);
   const [burnQueue, setBurnQueue] = useState([]);
+  const [burns, setBurns] = useState([])
   const lastUpdateRef = useRef(Date.now());
 
   const handleReset = async () => {
@@ -145,7 +146,7 @@ function App() {
 
         {/* Center visualization */}
         <div className="col-span-2">
-          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} />
+          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} burns={burns} />
         </div>
 
         {/* Right column */}

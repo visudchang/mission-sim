@@ -39,7 +39,7 @@ class Spacecraft:
         self.mission_log = []
 
     class Battery:
-        def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=10.0):
+        def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=12.0):
             self.parent = parent
             self.percent = initial_percent
             self.recharge_rate = recharge_rate_per_sec  # % per simulated second
@@ -52,9 +52,9 @@ class Spacecraft:
             dv_magnitude = np.linalg.norm(dv_vector_kms)
             drop = dv_magnitude * self.dv_cost_per_kms
             new_percent = self.percent - drop.to_value(u.km / u.s)
-            if new_percent < 0.0:
+            if new_percent < 0.0 and self.percent != 100.0:
                 return False
-            self.percent = new_percent
+            self.percent = max(0.0, new_percent)
             if new_percent < 20.0:
                 self.parent.log_event("Warning: Battery below 20%")
             return True
