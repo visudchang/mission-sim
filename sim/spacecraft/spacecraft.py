@@ -37,6 +37,7 @@ class Spacecraft:
         self.mission_time = 0.0 * u.s
         self.battery = self.Battery(parent = self)
         self.mission_log = []
+        self.last_burn_time = None
 
     class Battery:
         def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=12.0):
@@ -83,6 +84,7 @@ class Spacecraft:
 
         self.burns.append((mission_time, delta_v_vec))
         self.history.append(("burn", delta_v_vec, mission_time))
+        self.last_burn_time = mission_time.to_value(u.s)
 
         print(f"[Spacecraft] Applying immediate burn at T+{mission_time:.2f}")
         dv_mag = np.linalg.norm(delta_v_vec).to(u.km / u.s).value
@@ -134,8 +136,15 @@ class Spacecraft:
             "velocity": self.velocity.to_value(u.km / u.s).tolist(),
             "orbital_energy": orbital_energy / 1e6,
             "missionTime": self.mission_time.to_value(u.s),
-            "BAT": round(self.battery.percent, 2)
+            "BAT": round(self.battery.percent, 2),
         }
+
+        burn_flash = False
+        if self.last_burn_time is not None:
+            if abs(self.mission_time.to_value(u.s) - self.last_burn_time) < 10:
+                burn_flash = True
+        telemetry["burn_flash"] = burn_flash
+
         if include_path:
             telemetry["orbitPath"] = self.get_orbit_path()
         return telemetry

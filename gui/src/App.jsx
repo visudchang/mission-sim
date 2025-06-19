@@ -18,7 +18,7 @@ function App() {
   const [timeScale, setTimeScale] = useState(1);
   const [velocityHistory, setVelocityHistory] = useState([]);
   const [burnQueue, setBurnQueue] = useState([]);
-  const [burns, setBurns] = useState([])
+  const [latestBurnTime, setLatestBurnTime] = useState(null);
   const lastUpdateRef = useRef(Date.now());
 
   const handleReset = async () => {
@@ -102,10 +102,15 @@ function App() {
           setLogEntries(data.logs);
         }
 
+        if (data.burn_flash) {
+          setLatestBurnTime(data.missionTime);
+        }
+
       } catch (err) {
         console.error('[Frontend] Invalid telemetry:', err);
       }
     };
+
 
     socket.onerror = (err) => console.error('[Frontend] WebSocket error:', err);
     socket.onclose = () => console.log('[Frontend] WebSocket closed');
@@ -146,7 +151,7 @@ function App() {
 
         {/* Center visualization */}
         <div className="col-span-2">
-          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} burns={burns} />
+          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} latestBurnTime={latestBurnTime} />
         </div>
 
         {/* Right column */}

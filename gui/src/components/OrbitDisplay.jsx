@@ -25,7 +25,6 @@ function Earth({ missionTime, timeScale }) {
   )
 }
 
-
 function OrbitTrail({ trail }) {
   if (!trail || trail.length < 2) return null
 
@@ -41,9 +40,27 @@ function OrbitTrail({ trail }) {
   )
 }
 
-function Satellite({ position }) {
+function Satellite({ position, missionTime, latestBurnTime, timeScale }) {
   const meshRef = useRef()
   const lastPos = useRef(null)
+  const flashedBurnRef = useRef(null)
+  const [flash, setFlash] = useState(false)
+
+  useEffect(() => {
+    if (latestBurnTime === null) return;
+
+    const diff = Math.abs(latestBurnTime - missionTime);
+
+    if (diff < timeScale * 1.2) {
+      if (flashedBurnRef.current === latestBurnTime) return;
+      setFlash(true);
+      flashedBurnRef.current = latestBurnTime;
+      const timer = setTimeout(() => setFlash(false), 250);
+      return () => clearTimeout(timer);
+    } else {
+      setFlash(false);
+    }
+  }, [missionTime, latestBurnTime, timeScale]);
 
   useFrame(() => {
     if (meshRef.current && position) {
@@ -52,22 +69,19 @@ function Satellite({ position }) {
 
       const rounded = scaled.map(x => x.toFixed(5))
       const same = lastPos.current?.every((val, i) => val === rounded[i])
-      if (!same) {
-        // console.log("[Satellite] Updated position to:", rounded)
-        lastPos.current = rounded
-      }
+      if (!same) lastPos.current = rounded
     }
   })
 
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[0.02, 32, 32]} />
-      <meshBasicMaterial color="red" transparent opacity={0.7} />
+      <meshBasicMaterial color={flash ? 'orange' : 'red'} transparent opacity={flash ? 1.0 : 0.7} />
     </mesh>
   )
 }
 
-export default function OrbitDisplay({ missionTime, timeScale }) {
+export default function OrbitDisplay({ missionTime, timeScale, latestBurnTime }) {
   const [position, setPosition] = useState(null)
   const [trail, setTrail] = useState([])
 
@@ -79,29 +93,29 @@ export default function OrbitDisplay({ missionTime, timeScale }) {
 
   useEffect(() => {
     if (missionTime === 0) {
-      setTrail([]);
-      setPosition(null);
+      setTrail([])
+      setPosition(null)
     }
-  }, [missionTime]);
+  }, [missionTime])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const t = missionTimeRef.current;
+      const t = missionTimeRef.current
 
       fetch('http://localhost:5000/propagate?missionTime=' + t)
         .then(res => res.json())
         .then(data => {
           if (data.position) {
-            const pos = [...data.position];
-            setPosition(pos);
-            setTrail(prev => [...prev, pos]);
+            const pos = [...data.position]
+            setPosition(pos)
+            setTrail(prev => [...prev, pos])
           }
         })
-        .catch(err => console.error('[OrbitDisplay] Fetch error:', err));
-    }, 1000 / 24);
+        .catch(err => console.error('[OrbitDisplay] Fetch error:', err))
+    }, 1000 / 24)
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[400px] overflow-hidden">
@@ -113,9 +127,9 @@ export default function OrbitDisplay({ missionTime, timeScale }) {
           <pointLight position={[-3, -2, -1]} intensity={1} />
 
           <Suspense fallback={null}>
-            <Earth missionTime={missionTime}/>
+            <Earth missionTime={missionTime} timeScale={timeScale} />
             <OrbitTrail trail={trail} />
-            <Satellite position={position} />
+            <Satellite position={position} missionTime={missionTime} latestBurnTime={latestBurnTime} timeScale={timeScale} />
           </Suspense>
 
           <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade />
