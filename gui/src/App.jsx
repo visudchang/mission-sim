@@ -32,7 +32,7 @@ function App() {
       // Reset frontend time
       setMissionTime(0);
       setVelocityHistory([]);
-      lastUpdateRef.current = Date.now();  // <== IMPORTANT
+      lastUpdateRef.current = Date.now(); 
     } catch (err) {
       console.error("[App] Reset failed:", err);
     }
@@ -46,7 +46,6 @@ function App() {
 
       setMissionTime(prev => {
         const updated = prev + elapsed * timeScale;
-        // console.log("[App] Advancing missionTime to:", updated.toFixed(2));
         fetch(`http://localhost:5000/propagate?missionTime=${updated}`)
           .then(res => res.json())
           .then(data => {
@@ -73,7 +72,7 @@ function App() {
           .catch(err => console.error("[Telemetry Fetch Error]", err));
         return updated;
       });
-    }, 1000 / 24); // Target ~24 FPS
+    }, 1000 / 24); 
 
     return () => clearInterval(interval);
   }, [timeScale]);
@@ -162,7 +161,7 @@ function App() {
       </div>
 
       {/* Bottom row: Time Controls + Graphs */}
-      <div className="grid grid-cols-12 gap-4 pt-4">
+      <div className="grid grid-cols-12 gap-4 pt-1">
         <div className="col-span-3 space-y-2 flex flex-col justify-between">
           <FlightDataPanel velocity={telemetry.VEL || 0} orbital_energy={telemetry.orbital_energy || 0} />
           <TimeControls missionTime={missionTime} setMissionTime={setMissionTime} setTimeScale={setTimeScale} />

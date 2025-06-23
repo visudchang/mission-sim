@@ -1,6 +1,6 @@
 export default function AttitudeGraph() {
   return (
-    <div className="bg-zinc-800 p-4 rounded-lg shadow-lg h-66">
+    <div className="bg-zinc-800 p-4 rounded-lg shadow-lg h-76">
       <h2 className="text-md font-semibold text-blue-300 mb-2">Pitch / Yaw / Roll</h2>
 
       <svg className="w-full h-[80%] bg-zinc-900 rounded" viewBox="0 0 100 40">

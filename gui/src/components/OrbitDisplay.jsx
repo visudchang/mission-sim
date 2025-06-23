@@ -49,18 +49,28 @@ function Satellite({ position, missionTime, latestBurnTime, timeScale }) {
   useEffect(() => {
     if (latestBurnTime === null) return;
 
-    const diff = Math.abs(latestBurnTime - missionTime);
+    console.log("[Satellite] Detected burn time:", latestBurnTime);
+    console.log("[Satellite] Last flashed burn time:", flashedBurnRef.current);
 
-    if (diff < timeScale * 1.2) {
-      if (flashedBurnRef.current === latestBurnTime) return;
-      setFlash(true);
-      flashedBurnRef.current = latestBurnTime;
-      const timer = setTimeout(() => setFlash(false), 250);
-      return () => clearTimeout(timer);
-    } else {
-      setFlash(false);
+    if (flashedBurnRef.current !== null && Math.abs(flashedBurnRef.current - latestBurnTime) < 11.0) {
+      console.log("[Satellite] Burn already flashed (within 11s), skipping");
+      return;
     }
-  }, [missionTime, latestBurnTime, timeScale]);
+
+    console.log("[Satellite] Flashing burn now");
+    setFlash(true);
+    flashedBurnRef.current = latestBurnTime;
+
+    const timer = setTimeout(() => {
+      setFlash(false);
+      console.log("[Satellite] Flash off");
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      console.log("[Satellite] Cleared previous timer");
+    };
+  }, [latestBurnTime]);
 
   useFrame(() => {
     if (meshRef.current && position) {
@@ -118,9 +128,9 @@ export default function OrbitDisplay({ missionTime, timeScale, latestBurnTime })
   }, [])
 
   return (
-    <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[400px] overflow-hidden">
+    <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[416px] overflow-hidden">
       <h2 className="text-lg font-semibold text-blue-300 mb-2">Orbit Visualization</h2>
-      <div className="w-full h-[360px] rounded-lg overflow-hidden">
+      <div className="w-full h-[376px] rounded-lg overflow-hidden">
         <Canvas camera={{ position: [0, 0, 20], up: [0, 0, 1], fov: 45 }}>
           <ambientLight intensity={1.0} />
           <directionalLight position={[3, 2, 1]} intensity={1.5} />
