@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 export default function DynamicsGraph({ velocityHistory, missionTime }) {
   return (
     <div className="bg-zinc-800 p-4 rounded-lg shadow-lg h-76">
-      <h2 className="text-md font-semibold text-blue-300 mb-2 text-center">Velocity</h2>
+      <h2 className="text-md font-semibold text-blue-300 mb-2">Velocity</h2>
 
       <div className="relative left-[-12px] top-[20px]"> {/* shift left and down */}
         <ResponsiveContainer width="100%" height={220}>

@@ -139,7 +139,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen w-screen bg-zinc-900 text-white p-4 space-y-4">
+    <div className="min-h-screen w-screen bg-zinc-900 text-white p-2 space-y-2">
       <Header />
       <div className="grid grid-cols-4 gap-4 items-stretch">
         {/* Left column */}

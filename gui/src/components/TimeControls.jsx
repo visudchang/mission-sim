@@ -16,11 +16,14 @@ export default function TimeControls({ missionTime, setMissionTime, setTimeScale
       })
   }, [])
 
-  // Format mission time as T+MM:SS
   const formatMissionTime = (seconds) => {
-    const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
-    const secs = String(Math.floor(seconds % 60)).padStart(2, '0')
-    return `T+${mins}:${secs}`
+    const totalSeconds = Math.floor(seconds)
+    const hrs = Math.floor(totalSeconds / 3600)
+    const mins = Math.floor((totalSeconds % 3600) / 60)
+    const secs = totalSeconds % 60
+
+    const pad = (n) => String(n).padStart(2, '0')
+    return `T+${pad(hrs)}:${pad(mins)}:${pad(secs)}`
   }
 
   return (

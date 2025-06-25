@@ -131,7 +131,7 @@ export default function OrbitDisplay({ missionTime, timeScale, latestBurnTime })
     <div className="bg-zinc-800 p-2 rounded-lg shadow-lg h-[416px] overflow-hidden">
       <h2 className="text-lg font-semibold text-blue-300 mb-2">Orbit Visualization</h2>
       <div className="w-full h-[376px] rounded-lg overflow-hidden">
-        <Canvas camera={{ position: [0, 0, 20], up: [0, 0, 1], fov: 45 }}>
+        <Canvas camera={{ position: [0, 10, 5], up: [0, 0, 1], fov: 45 }}>
           <ambientLight intensity={1.0} />
           <directionalLight position={[3, 2, 1]} intensity={1.5} />
           <pointLight position={[-3, -2, -1]} intensity={1} />
