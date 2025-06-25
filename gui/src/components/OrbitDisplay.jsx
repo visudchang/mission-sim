@@ -91,7 +91,7 @@ function Satellite({ position, missionTime, latestBurnTime, timeScale }) {
   )
 }
 
-export default function OrbitDisplay({ missionTime, timeScale, latestBurnTime }) {
+export default function OrbitDisplay({ missionTime, timeScale, latestBurnTime, setLatestBurnTime }) {
   const [position, setPosition] = useState(null)
   const [trail, setTrail] = useState([])
 
@@ -119,6 +119,9 @@ export default function OrbitDisplay({ missionTime, timeScale, latestBurnTime })
             const pos = [...data.position]
             setPosition(pos)
             setTrail(prev => [...prev, pos])
+          }
+          if (data.lastBurnTime !== undefined && data.lastBurnTime !== null) {
+            setLatestBurnTime(data.lastBurnTime)
           }
         })
         .catch(err => console.error('[OrbitDisplay] Fetch error:', err))

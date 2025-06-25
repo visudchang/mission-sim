@@ -137,6 +137,7 @@ class Spacecraft:
             "orbital_energy": orbital_energy / 1e6,
             "missionTime": self.mission_time.to_value(u.s),
             "BAT": round(self.battery.percent, 2),
+            "lastBurnTime": self.last_burn_time,
         }
 
         burn_flash = False

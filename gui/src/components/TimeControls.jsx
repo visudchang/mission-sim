@@ -1,19 +1,8 @@
 import { useEffect } from 'react'
 
 export default function TimeControls({ missionTime, setMissionTime, setTimeScale }) {
-  // Fetch current mission time from backend on mount
   useEffect(() => {
-    fetch('http://localhost:5000/current_time')
-      .then(res => res.json())
-      .then(data => {
-        if (data.missionTime !== undefined) {
-          setMissionTime(data.missionTime)
-          console.log('[TimeControls] Synced mission time:', data.missionTime)
-        }
-      })
-      .catch(err => {
-        console.error('[TimeControls] Failed to sync mission time:', err)
-      })
+    setMissionTime(0)
   }, [])
 
   const formatMissionTime = (seconds) => {

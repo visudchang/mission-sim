@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function ControlPanel({ missionTime, setMissionTime, onReset }) {
+export default function ControlPanel({ missionTime, setMissionTime, onReset, setLatestBurnTime }) {
   const [dvX, setDvX] = useState(0.1);
   const [dvY, setDvY] = useState(0);
   const [dvZ, setDvZ] = useState(0);
-  const [rp, setRp] = useState(6678);
-  const [ra, setRa] = useState(6678);
-  const [inclination, setInclination] = useState(28.5);
+  const [rp, setRp] = useState(15000);
+  const [ra, setRa] = useState(15000);
+  const [inclination, setInclination] = useState(0);
   const socketRef = useRef(null);
 
   useEffect(() => {

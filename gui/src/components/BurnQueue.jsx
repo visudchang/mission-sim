@@ -1,25 +1,19 @@
 export default function BurnQueue({ burnQueue = [] }) {
   const formatTPlus = (tPlusStr) => {
-    console.log('[formatTPlus] Raw input:', tPlusStr);
-
     if (!tPlusStr || typeof tPlusStr !== 'string') {
-      console.warn('[formatTPlus] Not a string, returning fallback');
       return 'T+??:??';
     }
 
     const cleaned = tPlusStr.startsWith('T+') ? tPlusStr.slice(2) : tPlusStr;
     const parts = cleaned.split(':');
     if (parts.length !== 2) {
-      console.warn('[formatTPlus] Invalid format:', cleaned);
       return 'T+??:??';
     }
 
     const mm = Number(parts[0]);
     const ss = Number(parts[1]);
-    console.log('[formatTPlus] Parsed minutes:', mm, '| seconds:', ss);
 
     if (isNaN(mm) || isNaN(ss)) {
-      console.warn('[formatTPlus] NaN detected, returning fallback');
       return 'T+??:??';
     }
 
@@ -30,7 +24,6 @@ export default function BurnQueue({ burnQueue = [] }) {
 
     const pad = (n) => String(n).padStart(2, '0');
     const result = `T+${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
-    console.log('[formatTPlus] Final result:', result);
     return result;
   };
 

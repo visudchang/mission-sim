@@ -145,12 +145,12 @@ function App() {
         {/* Left column */}
         <div className="col-span-1 space-y-4">
           <TelemetryPanel telemetry={telemetry} />
-          <ControlPanel missionTime={missionTime} setMissionTime={setMissionTime} onReset={handleReset} />
+          <ControlPanel missionTime={missionTime} setMissionTime={setMissionTime} onReset={handleReset} setLatestBurnTime={setLatestBurnTime} />
         </div>
 
         {/* Center visualization */}
         <div className="col-span-2">
-          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} latestBurnTime={latestBurnTime} />
+          <OrbitDisplay missionTime={missionTime} timeScale={timeScale} latestBurnTime={latestBurnTime} setLatestBurnTime={setLatestBurnTime} />
         </div>
 
         {/* Right column */}
