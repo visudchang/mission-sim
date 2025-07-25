@@ -11,6 +11,8 @@ import numpy as np
 from astropy import units as u
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import time
+import random
 
 from sim.spacecraft.spacecraft_controller import spacecraft
 import logging
@@ -26,6 +28,50 @@ PORT = 65432
 
 telemetry_log = []
 burn_queue = []
+
+imu_data = {
+    "PITCH": 0.0,
+    "ROLL": 0.0,
+    "YAW": 0.0,
+    "TEMP": 25.0
+}
+
+last_imu_update_time = 0
+
+def imu_tcp_client():
+    global imu_data, last_imu_update_time
+
+    while True:
+        try:
+            with socket.create_connection(("127.0.0.1", 65433)) as s:
+                print("[IMU] Connected to Go IMU server")
+                buffer = ""
+                while True:
+                    chunk = s.recv(8192).decode()
+                    buffer += chunk
+                    while "\n" in buffer:
+                        line, buffer = buffer.split("\n", 1)
+                        try:
+                            parsed = json.loads(line.strip())
+                            imu_data.update(parsed)
+                            last_imu_update_time = time.time()
+                        except json.JSONDecodeError:
+                            continue
+        except Exception as e:
+            print("[IMU] Connection failed or lost:", e)
+            time.sleep(2)
+
+def imu_fallback_thread():
+    global imu_data, last_imu_update_time
+
+    while True:
+        now = time.time()
+        if now - last_imu_update_time > 3:  # No IMU data for 3+ seconds
+            imu_data["PITCH"] = round(random.uniform(-5, 5), 2)
+            imu_data["ROLL"]  = round(random.uniform(-5, 5), 2)
+            imu_data["YAW"]   = round(random.uniform(0, 360), 2)
+            imu_data["TEMP"]  = 25.0
+        time.sleep(1)
 
 @app.route("/propagate")
 def propagate():
@@ -86,6 +132,7 @@ def handle_connection(conn, addr, writer, csvfile):
                     # Return latest telemetry without propagating
                     telemetry = spacecraft.get_telemetry()
                     telemetry["logs"] = spacecraft.mission_log[:15]
+                    telemetry.update(imu_data)
                     response = json.dumps(telemetry).encode()
                     conn.sendall(response)
                     # print(f"[Ground Station] Sent latest telemetry: {telemetry}")
@@ -177,9 +224,11 @@ def reset_mission():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Uncomment to enable hardware serial telemetry
-    # serial_thread = threading.Thread(target=serial_reader, daemon=True)
-    # serial_thread.start()
+    imu_thread = threading.Thread(target=imu_tcp_client, daemon=True)
+    imu_thread.start()
+
+    imu_fallback = threading.Thread(target=imu_fallback_thread, daemon=True)
+    imu_fallback.start()
 
     with open("telemetry/telemetry_log.csv", mode="a", newline="") as csvfile:
         fieldnames = ["missionTime", "BAT", "TEMP", "VEL", "ALT", "ACC"]

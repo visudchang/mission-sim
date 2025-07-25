@@ -2,6 +2,11 @@ import asyncio
 import json
 import websockets
 import socket
+import time
+import random
+
+last_valid_telemetry_time = 0
+fallback_active = False
 
 TCP_HOST = "127.0.0.1"
 TCP_PORT = 65432
@@ -9,7 +14,7 @@ WS_PORT = 8765
 
 connected_clients = set()
 
-tcp_writer = None  # Will hold TCP connection writer
+tcp_writer = None  # will hold TCP connection writer
 
 async def fetch_telemetry_from_tcp():
     global tcp_writer
@@ -32,7 +37,7 @@ async def fetch_telemetry_from_tcp():
                         except json.JSONDecodeError:
                             break
 
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(1 / 24)
         except Exception as e:
             print("[Bridge] Connection error:", e)
             tcp_writer = None

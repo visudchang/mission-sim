@@ -9,7 +9,7 @@ export default function TelemetryPanel({ telemetry }) {
         </div>
         <div className="flex justify-between text-gray-400">
           <span>Temperature:</span>
-          <span className="font-mono text-white">{(telemetry.TEMP ?? 25.17).toFixed(2)} °C</span>
+          <span className="font-mono text-white">{(telemetry.TEMP ?? 25).toFixed(0)} °C</span>
         </div>
         <div className="flex justify-between text-gray-400">
           <span>Altitude:</span>

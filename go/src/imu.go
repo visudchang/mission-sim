@@ -2,18 +2,20 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"strings"
 
 	"github.com/tarm/serial"
 )
 
 type IMUData struct {
-	Roll  float64
-	Pitch float64
-	Yaw   float64
-	Temp  float64
+	Roll  float64 `json:"ROLL"`
+	Pitch float64 `json:"PITCH"`
+	Yaw   float64 `json:"YAW"`
+	Temp  float64 `json:"TEMP"`
 }
 
 func parseLine(line string) (*IMUData, error) {
@@ -45,20 +47,43 @@ func parseLine(line string) (*IMUData, error) {
 }
 
 func main() {
-	c := &serial.Config{Name: "/dev/cu.usbserial-0001", Baud: 115200} // or "COM3" on Windows, "/dev/tty.usbserial-..." on Mac
-	s, err := serial.OpenPort(c)
+	// Start TCP server on port 65433
+	ln, err := net.Listen("tcp", ":65433")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to start TCP server:", err)
 	}
-	scanner := bufio.NewScanner(s)
-	for scanner.Scan() {
-		line := scanner.Text()
-		fmt.Println("Raw:", line)
-		data, err := parseLine(line)
+	fmt.Println("IMU TCP server listening on port 65433")
+
+	// Connect to Arduino over serial
+	ser, err := serial.OpenPort(&serial.Config{Name: "/dev/tty.usbserial-0001", Baud: 115200})
+	if err != nil {
+		log.Fatal("Serial open failed:", err)
+	}
+	serialScanner := bufio.NewScanner(ser)
+
+	for {
+		conn, err := ln.Accept()
 		if err != nil {
-			log.Println("Parse error:", err)
+			log.Println("Connection error:", err)
 			continue
 		}
-		fmt.Printf("Parsed: %+v\n", data)
+		fmt.Println("Client connected")
+
+		go func(c net.Conn) {
+			defer c.Close()
+			for serialScanner.Scan() {
+				line := serialScanner.Text()
+				data, err := parseLine(line)
+				if err != nil {
+					continue
+				}
+				jsonData, _ := json.Marshal(data)
+				_, err = c.Write([]byte(string(jsonData) + "\n"))
+				if err != nil {
+					log.Println("Write error:", err)
+					break
+				}
+			}
+		}(conn)
 	}
 }

@@ -12,7 +12,7 @@ import "tailwindcss";
 import { useEffect, useState, useRef } from 'react';
 
 function App() {
-  const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0, VEL: 0, orbital_energy: 0, time: 0 });
+  const [telemetry, setTelemetry] = useState({ BAT: 0, TEMP: 0, ALT: 0, VEL: 0, orbital_energy: 0, time: 0, PITCH: 0, ROLL: 0, YAW: 0 });
   const [logEntries, setLogEntries] = useState([]);
   const [missionTime, setMissionTime] = useState(0);
   const [timeScale, setTimeScale] = useState(1);
@@ -49,14 +49,15 @@ function App() {
         fetch(`http://localhost:5000/propagate?missionTime=${updated}`)
           .then(res => res.json())
           .then(data => {
-            setTelemetry({
+            setTelemetry(prev => ({
+              ...prev,
               BAT: data.BAT,
-              TEMP: data.TEMP,
+              TEMP: data.TEMP ?? prev.TEMP,
               ALT: data.ALT,
               VEL: data.VEL,
               orbital_energy: data.orbital_energy,
               time: data.missionTime
-            });
+            }));
 
             setVelocityHistory(prev => {
               const next = [
@@ -87,6 +88,7 @@ function App() {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log("[Frontend] WebSocket data received:", data);
 
         setTelemetry({
           BAT: data.BAT,
@@ -94,7 +96,10 @@ function App() {
           ALT: data.ALT,
           VEL: data.VEL,
           orbital_energy: data.orbital_energy,
-          missionTime: data.missionTime
+          missionTime: data.missionTime,
+          PITCH: data.PITCH ?? telemetry.PITCH,
+          ROLL: data.ROLL ?? telemetry.ROLL,
+          YAW: data.YAW ?? telemetry.YAW
         });
 
         if (data.logs) {
@@ -163,11 +168,11 @@ function App() {
       {/* Bottom row: Time Controls + Graphs */}
       <div className="grid grid-cols-12 gap-4 pt-1">
         <div className="col-span-3 space-y-2 flex flex-col justify-between">
-          <FlightDataPanel velocity={telemetry.VEL || 0} orbital_energy={telemetry.orbital_energy || 0} />
+          <FlightDataPanel velocity={telemetry.VEL || 0} orbital_energy={telemetry.orbital_energy || 0} pitch={telemetry.PITCH || 0} roll={telemetry.ROLL || 0} yaw={telemetry.YAW || 0} />
           <TimeControls missionTime={missionTime} setMissionTime={setMissionTime} setTimeScale={setTimeScale} />
         </div>
         <div className="col-span-9 grid grid-cols-2 gap-4">
-          <AttitudeGraph />
+          <AttitudeGraph pitch={telemetry.PITCH} yaw={telemetry.YAW} roll={telemetry.ROLL} />
           <DynamicsGraph velocityHistory={velocityHistory} missionTime={missionTime} />
         </div>
       </div>
