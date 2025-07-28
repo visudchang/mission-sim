@@ -25,8 +25,8 @@ export default function AttitudeGraph({ pitch, yaw, roll }) {
     const interval = setInterval(() => {
       const latest = latestRef.current;
       setData(prev => ({
-        pitch: [...prev.pitch, scaleValue(latest.pitch, -90, 90, graphHeight)].slice(-maxPoints),
-        roll: [...prev.roll, scaleValue(latest.roll, -90, 90, graphHeight)].slice(-maxPoints),
+        pitch: [...prev.pitch, scaleValue(latest.pitch, -185, 185, graphHeight)].slice(-maxPoints),
+        roll: [...prev.roll, scaleValue(latest.roll, -185, 185, graphHeight)].slice(-maxPoints),
         yaw:   [...prev.yaw, scaleValue(latest.yaw, -185, 185, graphHeight)].slice(-maxPoints),
       }));
     }, 100);
