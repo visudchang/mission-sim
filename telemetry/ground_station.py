@@ -17,7 +17,7 @@ import random
 from sim.spacecraft.spacecraft_controller import spacecraft
 import logging
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)  # or logging.CRITICAL to suppress even more
+log.setLevel(logging.ERROR) 
 
 
 app = Flask(__name__)
@@ -66,10 +66,10 @@ def imu_fallback_thread():
 
     while True:
         now = time.time()
-        if now - last_imu_update_time > 3:  # No IMU data for 3+ seconds
+        if now - last_imu_update_time > 3: 
             imu_data["PITCH"] = round(random.uniform(-5, 5), 2)
             imu_data["ROLL"]  = round(random.uniform(-5, 5), 2)
-            imu_data["YAW"]   = round(random.uniform(0, 360), 2)
+            imu_data["YAW"]   = round(random.uniform(-5, 5), 2)
             imu_data["TEMP"]  = 25.0
         time.sleep(1)
 
@@ -78,8 +78,7 @@ def propagate():
     try:
         t = float(request.args.get("missionTime", 0))
         # print(f"[Flask] Received missionTime = {t}")
-        # spacecraft.mission_time = t * u.s
-        spacecraft.propagate(t)  # t is mission time in seconds
+        spacecraft.propagate(t) 
         telemetry = spacecraft.get_telemetry()
         return jsonify(telemetry)
     except Exception as e:
@@ -98,7 +97,6 @@ def serial_reader():
             print("[Serial Received]", line)
             parts = dict(item.strip().split(":") for item in line.split(","))
 
-            # No propagation here – keep sim time consistent
             orbital_data = spacecraft.get_telemetry()
 
             telemetry = {
@@ -129,7 +127,6 @@ def handle_connection(conn, addr, writer, csvfile):
                 decoded = data.decode().strip()
 
                 if decoded == "GET_STATUS":
-                    # Return latest telemetry without propagating
                     telemetry = spacecraft.get_telemetry()
                     telemetry["logs"] = spacecraft.mission_log[:15]
                     telemetry.update(imu_data)
