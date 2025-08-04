@@ -19,29 +19,19 @@ type IMUData struct {
 }
 
 func parseLine(line string) (*IMUData, error) {
+	if strings.HasPrefix(line, "[Received] ") {
+		line = strings.TrimPrefix(line, "[Received] ")
+	}
+
 	data := IMUData{}
 	parts := strings.Split(line, ",")
-	for _, part := range parts {
-		pair := strings.Split(part, ":")
-		if len(pair) != 2 {
-			continue
-		}
-		key, val := pair[0], pair[1]
-		var f float64
-		_, err := fmt.Sscanf(val, "%f", &f)
-		if err != nil {
-			return nil, err
-		}
-		switch key {
-		case "ROLL":
-			data.Roll = f
-		case "PITCH":
-			data.Pitch = f
-		case "YAW":
-			data.Yaw = f
-		case "TEMP":
-			data.Temp = f
-		}
+	if len(parts) != 4 {
+		return nil, fmt.Errorf("expected 4 values, got %d", len(parts))
+	}
+
+	_, err := fmt.Sscanf(line, "%f,%f,%f,%f", &data.Pitch, &data.Roll, &data.Yaw, &data.Temp)
+	if err != nil {
+		return nil, err
 	}
 	return &data, nil
 }
@@ -54,7 +44,6 @@ func main() {
 	}
 	fmt.Println("IMU TCP server listening on port 65433")
 
-	// Connect to Arduino over serial
 	ser, err := serial.OpenPort(&serial.Config{Name: "/dev/tty.usbserial-0001", Baud: 115200})
 	if err != nil {
 		log.Fatal("Serial open failed:", err)
@@ -73,6 +62,7 @@ func main() {
 			defer c.Close()
 			for serialScanner.Scan() {
 				line := serialScanner.Text()
+
 				data, err := parseLine(line)
 				if err != nil {
 					continue

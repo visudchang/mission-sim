@@ -29,7 +29,7 @@ export default function AttitudeGraph({ pitch, yaw, roll }) {
         roll: [...prev.roll, scaleValue(latest.roll, -185, 185, graphHeight)].slice(-maxPoints),
         yaw:   [...prev.yaw, scaleValue(latest.yaw, -185, 185, graphHeight)].slice(-maxPoints),
       }));
-    }, 100);
+    }, 350);
 
     return () => clearInterval(interval);
   }, []);
