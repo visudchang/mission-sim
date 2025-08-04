@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  python_services:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    ports:
+      - "5000:5000"  # Update this if your backend uses different ports
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  go_imu:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./gui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

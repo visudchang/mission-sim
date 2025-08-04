@@ -1,0 +1,14 @@
+# Dockerfile.python
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY telemetry/ telemetry/
+COPY comms/ comms/
+COPY requirements.txt ./
+# Copy the shared lib if needed
+COPY liborbital_energy.so ./
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+CMD ["bash", "-c", "python telemetry/ground_station.py & python comms/websocket_proxy.py"]
