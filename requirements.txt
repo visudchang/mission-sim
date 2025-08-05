@@ -1,2 +1,7 @@
 flask
 pyserial
+numpy
+websockets
+astropy
+poliastro
+flask_cors

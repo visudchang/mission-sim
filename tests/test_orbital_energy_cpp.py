@@ -1,7 +1,11 @@
+import os
 import ctypes
 from ctypes import c_double
 
-lib = ctypes.CDLL("./liborbital_energy.so")
+lib_path = os.path.join(os.path.dirname(__file__), "../liborbital_energy.so")
+lib_path = os.path.abspath(lib_path)
+
+lib = ctypes.CDLL(lib_path)
 
 lib.compute_orbital_energy.argtypes = [c_double, c_double]
 lib.compute_orbital_energy.restype = c_double

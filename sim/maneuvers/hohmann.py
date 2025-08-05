@@ -73,7 +73,6 @@ def animate_hohmann_transfer(orb_i, new_radius):
     burn1_index = len(xi) - 1
     burn2_index = burn1_index + len(xt) - 1
 
-    # Create frames (each with Earth + satellite position + trail)
     frames = []
     for i in range(len(xs)):
         marker = dict(size = 6, color = 'red')
@@ -98,7 +97,6 @@ def animate_hohmann_transfer(orb_i, new_radius):
             name = f'frame{i}'
         ))
 
-    # Base figure
     fig = go.Figure(
         data = [
             earth_surface,

@@ -13,25 +13,19 @@ def periapsis_adjustment_dv(rp_current, rp_target, ra_fixed, mu=398600.4418):
     return (v_target - v_current) * u.km / u.s
 
 def time_to_periapsis(orbit):
-    # Extract orbital parameters
     ecc = orbit.ecc.value
     a = orbit.a.to(u.km).value
     nu = orbit.nu.to(u.rad).value
     mu = orbit.attractor.k.to(u.km**3 / u.s**2).value
 
-    # Step 1: Compute eccentric anomaly E from true anomaly nu
     cos_E = (ecc + np.cos(nu)) / (1 + ecc * np.cos(nu))
     E = np.arccos(np.clip(cos_E, -1.0, 1.0))
     if nu > np.pi:
         E = 2 * np.pi - E
 
-    # Step 2: Compute mean anomaly M
     M = E - ecc * np.sin(E)
+    n = np.sqrt(mu / a**3) 
 
-    # Step 3: Compute mean motion n
-    n = np.sqrt(mu / a**3)  # radians per second
-
-    # Step 4: Time to periapsis
     period = 2 * np.pi / n
     time_since_periapsis = M / n
     time_until_periapsis = period - time_since_periapsis
@@ -94,8 +88,6 @@ def plot_burn(thrust, isp, duration, m0, dry_mass, v0):
 
     plt.tight_layout()
     plt.show()
-
-# plot_burn(5000, 300, 2000, 500, 100, 0.0)
 
 def perform_burn(orbit, thrust, isp, duration, m0):
     dv, mf = simple_burn(thrust, isp, duration, m0)

@@ -39,7 +39,7 @@ orb0 = Orbit.from_classical(cfg["attractor"],
                             epoch = cfg["epoch"])
 
 def plan_orbit_transfer(periapsis_radius, apoapsis_radius):
-    mu = 398600.4418  # km^3/s^2
+    mu = 398600.4418 
 
     # Start with the current orbit
     orb = orb0

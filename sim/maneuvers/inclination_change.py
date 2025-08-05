@@ -74,7 +74,6 @@ def animate_inclination_change_orb_f(orb_i, orb_f):
 
     burn_index = len(xi) - 1
 
-    # Create frames (each with Earth + satellite position + trail)
     frames = []
     for i in range(len(xs)):
         marker = dict(size = 6, color = 'red')
@@ -152,7 +151,6 @@ def animate_inclination_change_dv(orb_i, dv):
 
     burn_index = len(xi) - 1
 
-    # Create frames (each with Earth + satellite position + trail)
     frames = []
     for i in range(len(xs)):
         marker = dict(size = 6, color = 'red')
@@ -177,7 +175,6 @@ def animate_inclination_change_dv(orb_i, dv):
             name = f'frame{i}'
         ))
 
-    # Base figure
     fig = go.Figure(
         data = [
             earth_surface,

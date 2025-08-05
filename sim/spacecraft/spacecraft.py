@@ -27,9 +27,9 @@ class Spacecraft:
         self.initial_velocity = self.initial_orbit.v.copy()
         self.position = self.orbit.r
         self.velocity = self.orbit.v
-        self.burns = []  # list of (mission_time, delta_v_vec)
+        self.burns = []
         self.burn_queue = []
-        self.history = []  # list of (event_type, value, mission_time)
+        self.history = []
         self.planned_burns = []
         self.orbit_path = get_orbit_path_km(self.orbit)
         self.initial_orbit_path = self.orbit_path.copy()
@@ -43,8 +43,8 @@ class Spacecraft:
         def __init__(self, parent, initial_percent=100.0, recharge_rate_per_sec=0.001, dv_cost_per_kms=12.0):
             self.parent = parent
             self.percent = initial_percent
-            self.recharge_rate = recharge_rate_per_sec  # % per simulated second
-            self.dv_cost_per_kms = dv_cost_per_kms      # % per km/s of burn
+            self.recharge_rate = recharge_rate_per_sec  
+            self.dv_cost_per_kms = dv_cost_per_kms     
 
         def update(self, dt_simulated):
             self.percent = min(100.0, self.percent + self.recharge_rate * dt_simulated)
@@ -103,8 +103,6 @@ class Spacecraft:
 
     def propagate(self, mission_time_seconds):
         mission_time = mission_time_seconds * u.s
-        
-        # Always propagate from current state
         dt = mission_time - self.mission_time
         if dt <= 0 * u.s:
             # print(f"[Spacecraft] Already at T+{self.mission_time:.2f}")
@@ -154,7 +152,7 @@ class Spacecraft:
         return self.orbit_path
 
     def plan_orbit_transfer(self, periapsis_radius, apoapsis_radius, inclination):
-        mu = 398600.4418  # km^3/s^2
+        mu = 398600.4418
 
         # Start with the current orbit
         orb = Orbit.from_vectors(Earth, self.position, self.velocity, epoch=self.epoch + self.mission_time.to(u.s))

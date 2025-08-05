@@ -14,7 +14,7 @@ WS_PORT = 8765
 
 connected_clients = set()
 
-tcp_writer = None  # will hold TCP connection writer
+tcp_writer = None
 
 async def fetch_telemetry_from_tcp():
     global tcp_writer

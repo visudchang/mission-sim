@@ -21,7 +21,7 @@ export default function MissionLog({ logs }) {
 
   const formatLogLine = (line) => {
     const timeMatch = line.match(/T\+\d+:\d+/);
-    if (!timeMatch) return line; // No T+MM:SS found
+    if (!timeMatch) return line; 
 
     const original = timeMatch[0];
     const formatted = formatTPlus(original);
