@@ -69,9 +69,8 @@ async def handler(websocket):
         connected_clients.remove(websocket)
 
 async def main():
-    print(f"[Bridge] Starting WebSocket server on ws://localhost:{WS_PORT}")
     await asyncio.gather(
-        websockets.serve(handler, "localhost", WS_PORT),
+        websockets.serve(handler, "0.0.0.0", WS_PORT),
         fetch_telemetry_from_tcp()
     )
 

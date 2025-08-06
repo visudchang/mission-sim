@@ -7,7 +7,7 @@ import * as THREE from 'three'
 const EARTH_RADIUS_KM = 6371
 
 function Earth({ missionTime, timeScale }) {
-  const texture = useLoader(TextureLoader, '/src/assets/earth.jpg')
+  const texture = useLoader(TextureLoader, '/earth.jpg')
   const earthRef = useRef()
 
   useFrame(() => {

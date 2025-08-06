@@ -21,7 +21,7 @@ log.setLevel(logging.ERROR)
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+CORS(app)
 
 HOST = "127.0.0.1"
 PORT = 65432

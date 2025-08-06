@@ -23,6 +23,8 @@ RUN micromamba install -y -n base -c conda-forge \
     gxx_linux-64 \
     && micromamba clean --all --yes
 
+USER root
+
 # Install g++ so we can compile the C++ code
 RUN apt-get update && apt-get install -y g++ && rm -rf /var/lib/apt/lists/*
 
