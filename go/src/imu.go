@@ -50,7 +50,7 @@ func main() {
 	go func() {
 		for {
 			if ser == nil {
-				ser, err = serial.OpenPort(&serial.Config{Name: "/dev/tty.usbserial-0001", Baud: 115200})
+				ser, err = serial.OpenPort(&serial.Config{Name: "/dev/cu.usbserial-0001", Baud: 115200})
 				if err != nil {
 					fmt.Println("Waiting for serial device...")
 					time.Sleep(3 * time.Second)

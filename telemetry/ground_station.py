@@ -43,7 +43,7 @@ def imu_tcp_client():
 
     while True:
         try:
-            with socket.create_connection(("127.0.0.1", 65433)) as s:
+            with socket.create_connection(("host.docker.internal", 65433)) as s:
                 print("[IMU] Connected to Go IMU server")
                 buffer = ""
                 while True:
