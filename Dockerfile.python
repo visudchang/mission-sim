@@ -1,4 +1,3 @@
-# Dockerfile.python
 FROM mambaorg/micromamba:1.5.6
 
 WORKDIR /app
@@ -10,7 +9,6 @@ COPY tests/ tests/
 COPY orbital_energy.cpp ./
 COPY requirements.txt ./
 
-# Install Python + C++ compiler + dependencies
 RUN micromamba install -y -n base -c conda-forge \
     python=3.10 \
     astropy \
@@ -25,10 +23,8 @@ RUN micromamba install -y -n base -c conda-forge \
 
 USER root
 
-# Install g++ so we can compile the C++ code
 RUN apt-get update && apt-get install -y g++ && rm -rf /var/lib/apt/lists/*
 
-# Compile the C++ file
 RUN g++ -O3 -Wall -shared -std=c++11 -fPIC orbital_energy.cpp -o liborbital_energy.so
 
 CMD ["bash", "-c", "python telemetry/ground_station.py & python comms/websocket_proxy.py"]

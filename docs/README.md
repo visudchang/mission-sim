@@ -1,12 +1,12 @@
 ### Mission Simulator by Visud Chang ###
 
-Mission Simulator is a full-stack spacecraft operations system built to emulate real-time telemetry, orbital mechanics, and command/control loops between a ground station and an onboard flight computer. The system models telemetry from an IMU sensor, visualizes live attitude and orbital state, and allows mission commands like burns to be executed and monitored in a mission-style interface.
+Mission Simulator is a spacecraft operations system I built to emulate real-time telemetry, orbital mechanics, and command/control loops between a ground station and an onboard flight computer. The system models telemetry from an IMU sensor, visualizes live telemetry and orbital state, and allows mission commands like burns to be executed and monitored in a mission-style interface.
 
 Built using:
 -React + Tailwind CSS (GUI)
--Python (Flask) (Ground Station)
--Golang (Flight Computer logic)
--Arduino + ESP32 + BNO055 IMU (Hardware Interface)
+-Python + Computer Networking (TCP/Websockets/Flask) (Ground Station)
+-Golang + C++ (Flight Computer logic)
+-Arduino + ESP32 + BNO055 IMU + RF Systems (E32) (Hardware Interface)
 -Docker (Containerized Deployment)
 
 Features
@@ -50,10 +50,10 @@ React, Tailwind CSS, Vite
 Flask, PySerial, Poliastro, Astropy
 Golang TCP Server
 Arduino, ESP32, BNO055 IMU
-Docker, LoRa (for wireless telemetry)
+Docker, LoRa RF (for wireless telemetry)
 
 # Author
 Visud Chang
 NASA Ames | UC Berkeley Aerospace Engineering
-https://visudchang.com | https://www.linkedin.com/in/visudchang
+https://visudchang.com
 
