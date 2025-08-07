@@ -39,7 +39,7 @@ mission-sim/
 ── docs/ # README.md 
 ── tests/ # Unit and integration tests 
 ── Dockerfile.* # Docker configurations 
-── docker-compose.yml ``` </pre>
+── docker-compose.yml
 
 # Demo
 A full demo video is available at: https://visudchang.com/projects/mission-sim.
