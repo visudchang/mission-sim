@@ -30,7 +30,16 @@ docker-compose up --build
 Once built, the GUI will be available at: http://localhost:3000
 
 # Project Structure
-<pre> ```bash mission-sim/ ├── gui/ # React frontend ├── go/ # Go-based flight computer ├── sim/ # Orbital mechanics and spacecraft physics ├── telemetry/ # Serial/LoRa/IMU interface ├── comms/ # TCP client-server connection ├── docs/ # README.md ├── tests/ # Unit and integration tests ├── Dockerfile.* # Docker configurations └── docker-compose.yml ``` </pre>
+mission-sim/ 
+── gui/ # React frontend 
+── go/ # Go-based flight computer 
+── sim/ # Orbital mechanics and spacecraft physics 
+── telemetry/ # Serial/LoRa/IMU interface 
+── comms/ # TCP client-server connection 
+── docs/ # README.md 
+── tests/ # Unit and integration tests 
+── Dockerfile.* # Docker configurations 
+── docker-compose.yml ``` </pre>
 
 # Demo
 A full demo video is available at: https://visudchang.com/projects/mission-sim.
