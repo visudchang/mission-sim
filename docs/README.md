@@ -1,4 +1,4 @@
-### Mission Simulator by Visud Chang ###
+# Mission Simulator by Visud Chang
 
 Mission Simulator is a spacecraft operations system I built to emulate real-time telemetry, orbital mechanics, and command/control loops between a ground station and an onboard flight computer. The system models telemetry from an IMU sensor, visualizes live telemetry and orbital state, and allows mission commands like burns to be executed and monitored in a mission-style interface.
 
