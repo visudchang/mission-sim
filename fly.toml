@@ -1,4 +1,4 @@
 app = "mission-sim"
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "Dockerfile.python"
