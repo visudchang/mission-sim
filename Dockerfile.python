@@ -27,4 +27,6 @@ RUN apt-get update && apt-get install -y g++ && rm -rf /var/lib/apt/lists/*
 
 RUN g++ -O3 -Wall -shared -std=c++11 -fPIC orbital_energy.cpp -o liborbital_energy.so
 
+EXPOSE 8080
+
 CMD ["bash", "-c", "python telemetry/ground_station.py & python comms/websocket_proxy.py"]
