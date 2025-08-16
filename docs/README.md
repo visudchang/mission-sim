@@ -31,7 +31,7 @@ Once built, the GUI can be found at: http://localhost:3000
 
 # Demo
 A full demo video is available at: https://visudchang.com/projects/mission-sim.
-Alternatively, clone the repo and run locally using Docker, or visit https://visudchang.com/projects/mission-sim/demo.
+If you want to try it yourself, you can clone the repo and run the program locally using Docker using the instructions above.
 
 # Key Technologies
 React, Tailwind CSS, Vite
